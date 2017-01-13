@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
 
@@ -7,13 +7,12 @@ android {
 
     defaultConfig {
 
-        applicationId "com.amy.inertiapulltorefreshview"
-
         minSdkVersion 19
         targetSdkVersion 19
 
         versionCode 1
         versionName "1.0"
+
     }
 
     buildTypes {
@@ -22,10 +21,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
-    compile project(':lib-InertiaPullToRefreshView')
+    compile project(':lib-ScrollDetector')
     compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:recyclerview-v7:25.1.0'
 }

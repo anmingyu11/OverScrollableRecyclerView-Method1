@@ -8,13 +8,29 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+
+        <activity android:name="._MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".sub.AbsListViewActivity"
+            android:launchMode="singleTop"/>
+
+        <activity
+            android:name=".sub.RecyclerViewActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:name=".sub.ScrollViewActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:name=".sub.WebViewActivity"
+            android:launchMode="singleTop"/>
+
     </application>
 
 </manifest>

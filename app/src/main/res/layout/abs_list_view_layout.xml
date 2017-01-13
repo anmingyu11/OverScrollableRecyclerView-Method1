@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="@dimen/scroll_view_item_size"
+            android:layout_height="@dimen/scroll_view_item_size"
+            android:background="@drawable/mewoo1"/>
+
+        <ImageView
+            android:layout_width="@dimen/scroll_view_item_size"
+            android:layout_height="@dimen/scroll_view_item_size"
+            android:background="@drawable/mewoo2"/>
+
+        <ImageView
+            android:layout_width="@dimen/scroll_view_item_size"
+            android:layout_height="@dimen/scroll_view_item_size"
+            android:background="@drawable/mewoo3"/>
+
+        <ImageView
+            android:layout_width="@dimen/scroll_view_item_size"
+            android:layout_height="@dimen/scroll_view_item_size"
+            android:background="@drawable/mewoo4"/>
+
+        <ImageView
+            android:layout_width="@dimen/scroll_view_item_size"
+            android:layout_height="@dimen/scroll_view_item_size"
+            android:background="@drawable/mewoo5"/>
+
+    </LinearLayout>
+</ScrollView>
