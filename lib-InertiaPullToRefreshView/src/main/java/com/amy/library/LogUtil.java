@@ -1,4 +1,4 @@
-package com.amy.inertiapulltorefreshview;
+package com.amy.library;
 
 import android.util.Log;
 
@@ -6,7 +6,7 @@ import java.util.Locale;
 
 public class LogUtil {
     private static boolean ENABLE_DEBUG = true;
-    public static String TAG = " An ";
+    public static String TAG = " AMY ";
 
     public static void setTAG(String tag) {
         TAG = tag;

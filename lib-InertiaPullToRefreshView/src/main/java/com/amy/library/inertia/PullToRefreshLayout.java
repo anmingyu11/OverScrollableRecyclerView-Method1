@@ -2,25 +2,20 @@ package com.amy.library.inertia;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
 import android.webkit.WebView;
 import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
+import com.amy.library.LogUtil;
 import com.amy.library.Util;
 import com.amy.library.interfaces.IFooterView;
 import com.amy.library.interfaces.IHeaderView;
@@ -30,26 +25,8 @@ import com.amy.scrolldetector.ScrollUtil;
 
 import java.util.HashMap;
 
+
 public class PullToRefreshLayout extends FrameLayout {
-
-    private static boolean enableDebug = false;
-    private static String TAG = "AMY";
-
-    /**
-     * EnableDebug log , default is false.
-     *
-     * @param enable
-     */
-    public static void enableDebug(boolean enable, String tag) {
-        enableDebug = enable;
-        TAG = tag;
-    }
-
-    private static void log(String msg) {
-        if (enableDebug) {
-            Log.e(TAG, msg);
-        }
-    }
 
     private Context mContext;
     private int mTouchSlop;
@@ -138,7 +115,7 @@ public class PullToRefreshLayout extends FrameLayout {
     public static final String ANIM_SCROLL_BACK = "ANIM_SCROLL_BACK";
     public static final String ANIM_SCROLL_TO = "ANIM_SCROLL_TO";
     public static final String ANIM_OVER_SCROLL = "ANIM_OVER_SCROLL";
-    private final AnimatorController mAnimatorController = new AnimatorController();
+    private final AnimatorController mAnimatorController = new AnimatorController(mChildView);
 
     //PullListeners
     private final HashMap<String, IPullListener> mPullListeners = new HashMap<String, IPullListener>();
@@ -158,6 +135,12 @@ public class PullToRefreshLayout extends FrameLayout {
         mContext = context;
     }
 
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        init();
+    }
+
     private void init() {
         if (isInEditMode()) {
             return;
@@ -175,13 +158,6 @@ public class PullToRefreshLayout extends FrameLayout {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
 
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-
-        init();
     }
 
     private void initChildView() {
@@ -230,7 +206,7 @@ public class PullToRefreshLayout extends FrameLayout {
             @Override
             public void onScrollToBottom() {
                 if (!isInTouching) {
-                    log(Util.spellArray(dYArray));
+                    LogUtil.d(Util.spellArray(dYArray));
 
                     int max = Util.getMaxAbs(dYArray);
 
@@ -241,7 +217,7 @@ public class PullToRefreshLayout extends FrameLayout {
             @Override
             public void onScrollToTop() {
                 if (!isInTouching) {
-                    log(Util.spellArray(dYArray));
+                    LogUtil.d(Util.spellArray(dYArray));
 
                     int max = Util.getMaxAbs(dYArray);
 
@@ -282,15 +258,15 @@ public class PullToRefreshLayout extends FrameLayout {
                 float dY = ev.getY() - mTouchY;
                 if (Math.abs(dX) <= Math.abs(dY)) {
                     if (dY > 0
-                            && !ScrollUtil.isChildCanScrollUp(mChildView)
+                            && !ScrollUtil.isChildScrollToBottom(mChildView)
                             && (isEnableHeaderPullOverScroll || isEnableHeaderPullToRefresh)) {
-                        log("Intercepted state is pulling header ");
+                        LogUtil.d("Intercepted state is pulling header ");
                         mState = PULLING_HEADER;
                         return true;
                     } else if (dY < 0
-                            && !ScrollUtil.isChildCanScrollDown(mChildView)
+                            && !ScrollUtil.isChildScrollToTop(mChildView)
                             && (isEnableFooterPullOverScroll || isEnableFooterPullToRefresh)) {
-                        log("Intercepted state is pulling footer ");
+                        LogUtil.d("Intercepted state is pulling footer ");
                         mState = PULLING_FOOTER;
                         return true;
                     }
@@ -319,7 +295,7 @@ public class PullToRefreshLayout extends FrameLayout {
 
                     mChildView.setTranslationY(dY * pullOverScrollDamp);
                     mHeaderContainer.getLayoutParams().height = (int) Math.abs(dY * pullOverScrollDamp);
-                    //log("pulling header : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
+                    //LogUtil.d("pulling header : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
                     mHeaderContainer.requestLayout();
 
                     handlePullingHeader(dY / mHeaderTriggerRefreshHeight);
@@ -328,7 +304,7 @@ public class PullToRefreshLayout extends FrameLayout {
 
                     mChildView.setTranslationY(dY * pullOverScrollDamp);
                     mHeaderContainer.getLayoutParams().height = (int) Math.abs(dY * pullOverScrollDamp);
-                    //log("pulling footer : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
+                    //LogUtil.d("pulling footer : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
                     mHeaderContainer.requestLayout();
 
                     handlePullingFooter(dY / mFooterTriggerRefreshHeight);
@@ -340,7 +316,7 @@ public class PullToRefreshLayout extends FrameLayout {
                 if (mState == PULLING_HEADER) {
                     if (isEnableHeaderPullToRefresh
                             && Math.abs(mChildView.getTranslationY()) > mHeaderTriggerRefreshHeight) {
-                        log("handleHeaderRefresh");
+                        LogUtil.d("handleHeaderRefresh");
                         handleHeaderRefresh();
                     } else if (isEnableHeaderPullToRefresh || isEnableHeaderPullOverScroll) {
                         animChildViewScrollBack();
@@ -364,7 +340,7 @@ public class PullToRefreshLayout extends FrameLayout {
 
     private void animChildViewScrollBack() {
         float translationY = mChildView.getTranslationY();
-        log("animChildViewScrollBack : " + "translationY : " + translationY);
+        LogUtil.d("animChildViewScrollBack : " + "translationY : " + translationY);
         int duration = (int) Math.abs(translationY);
         mAnimatorController.cancelAllAnim();
         mAnimatorController.buildScrollBackAnimator(translationY, duration);
@@ -372,28 +348,28 @@ public class PullToRefreshLayout extends FrameLayout {
     }
 
     private void animChildViewScrollTo(float start, float to, int duration) {
-        log("animChildViewScrollTo : " + "start :" + start + " to : " + to + " duration : " + duration);
+        LogUtil.d("animChildViewScrollTo : " + "start :" + start + " to : " + to + " duration : " + duration);
         mAnimatorController.cancelAllAnim();
         mAnimatorController.buildScrollToAnimator(start, to, duration);
         mAnimatorController.startAnimator(ANIM_SCROLL_TO);
     }
 
     private void animChildViewOverScroll(float distanceY) {
-        log("animChildViewOverScroll : " + "dY : " + distanceY);
+        LogUtil.d("animChildViewOverScroll : " + "dY : " + distanceY);
         mAnimatorController.cancelAllAnim();
         mAnimatorController.buildOverScrollAnimator(distanceY);
         mAnimatorController.startAnimator(ANIM_OVER_SCROLL);
     }
 
     private void handlePullingHeader(float fraction) {
-        //log("pulling header fraction : " + fraction);
+        //LogUtil.d("pulling header fraction : " + fraction);
         for (IPullListener iPullListener : mPullListeners.values()) {
             iPullListener.onPullingHeader(this, fraction);
         }
     }
 
     private void handlePullingFooter(float fraction) {
-        //log("pulling footer fraction : " + fraction);
+        //LogUtil.d("pulling footer fraction : " + fraction);
         for (IPullListener iPullListener : mPullListeners.values()) {
             iPullListener.onPullingFooter(this, fraction);
         }
@@ -447,257 +423,6 @@ public class PullToRefreshLayout extends FrameLayout {
                 animChildViewScrollBack();
             }
         });
-    }
-
-    final class AnimatorController {
-
-        //InertiaAnim
-        int mInertiaOverScrollAnimDuration = 70;
-        float mInertiaOverScrollVyMax = 1000;
-        final Interpolator mOverScrollInterpolator = new LinearInterpolator();
-
-        //ScrollBackAnim
-        int mScrollBackAnimMinDuration = 750;
-        int mScrollBackAnimMaxDuration = 1000;
-        float mScrollBackAnimDamp = 1f;
-        final Interpolator mScrollBackInterpolator = new DecelerateInterpolator(mScrollBackAnimDamp);
-
-        //ScrollToAnim
-        int mScrollToAnimMinDuration = 200;
-        int mScrollToAnimMaxDuration = 400;
-        float mScrollToAnimDamp = 1f;
-        final Interpolator mScrollToInterpolator = new DecelerateInterpolator(mScrollToAnimDamp);
-
-        final HashMap<String, Animator> mAnimators = new HashMap<String, Animator>();
-        //Default animators
-        ValueAnimator overScrollAnimator;
-        ObjectAnimator scrollBackAnimator;
-        ObjectAnimator scrollToAnimator;
-
-        AnimatorController() {
-        }
-
-        boolean isAnimatorCurrentlyRunning(Animator animator) {
-            if (animator != null
-                    && animator.isStarted()
-                    && animator.isRunning()
-                    && !animator.isPaused()) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        boolean isAnimatorCurrentlyPaused(Animator animator) {
-            if (animator != null
-                    && animator.isStarted()
-                    && animator.isRunning()
-                    && animator.isPaused()) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        void pauseAllAnim() {
-            for (String name : mAnimators.keySet()) {
-                pauseAnim(name);
-            }
-        }
-
-        void resumeAllAnim() {
-            for (String name : mAnimators.keySet()) {
-                resumeAnim(name);
-            }
-        }
-
-        void cancelAllAnim() {
-            for (String name : mAnimators.keySet()) {
-                cancelAnim(name);
-            }
-        }
-
-        void pauseAnim(String name) {
-            Animator animator = getAnimator(name);
-            if (animator == null) {
-                log("pause anim : name you have given have animator is null or not exists");
-                return;
-            }
-            boolean pause = isAnimatorCurrentlyRunning(animator);
-            log("pausing animator : " + name + " canPause: " + pause);
-            if (pause) {
-                animator.pause();
-            }
-        }
-
-        void resumeAnim(String name) {
-            Animator animator = getAnimator(name);
-            if (animator == null) {
-                log("resume anim : name you have given have animator is null or not exists");
-                return;
-            }
-
-            boolean resume = isAnimatorCurrentlyPaused(animator);
-            log("resuming animator : " + name + " canResume :" + resume);
-            if (resume) {
-                animator.resume();
-            }
-        }
-
-        void cancelAnim(String name) {
-            Animator animator = getAnimator(name);
-            if (animator == null) {
-                log("cancel anim : name you have given have animator is null or not exists");
-                return;
-            }
-
-            boolean cancel = isAnimatorCurrentlyRunning(animator) || isAnimatorCurrentlyPaused(animator);
-            log("canceling animator : " + name + " canCancel : " + cancel);
-            if (cancel) {
-                animator.cancel();
-            }
-        }
-
-        Animator buildScrollBackAnimator(final float start, int duration) {
-            scrollBackAnimator = ObjectAnimator.ofFloat(mChildView, "translationY", start, 0);
-            scrollBackAnimator.setDuration(duration);
-            scrollBackAnimator.setInterpolator(mScrollBackInterpolator);
-            scrollBackAnimator.addListener(new AnimatorListenerAdapter() {
-
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    super.onAnimationStart(animation);
-                    mChildView.setTranslationY(start);
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    super.onAnimationCancel(animation);
-                    float translationY = mChildView.getTranslationY();
-                    boolean isPaused = animation.isPaused();
-                    log(ANIM_SCROLL_BACK + " onAnimationCancel " + " isPaused: " + isPaused + " translationY : " + translationY);
-                    //if (!isPaused) {
-                        mChildView.setTranslationY(0);
-                    //}
-                }
-            });
-            addAnimator(ANIM_SCROLL_BACK, scrollBackAnimator);
-            return scrollBackAnimator;
-        }
-
-        Animator buildOverScrollAnimator(float distanceY) {
-            log("over scroll animator start value : " + distanceY);
-            float dY = Math.min(distanceY, mInertiaOverScrollVyMax);
-            overScrollAnimator = ValueAnimator.ofFloat(dY, 0);
-            overScrollAnimator.setDuration(mInertiaOverScrollAnimDuration);
-            overScrollAnimator.setInterpolator(mOverScrollInterpolator);
-            overScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    float value = (float) animation.getAnimatedValue();
-                    mChildView.setTranslationY(mChildView.getTranslationY() + value);
-                }
-            });
-            overScrollAnimator.addListener(new AnimatorListenerAdapter() {
-                boolean isCancel = false;
-
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    super.onAnimationStart(animation);
-                    mChildView.setTranslationY(0);
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    if (isCancel) {
-                        isCancel = false;
-                        return;
-                    }
-                    cancelAnim(ANIM_SCROLL_TO);
-                    cancelAnim(ANIM_SCROLL_BACK);
-                    float translationY = mChildView.getTranslationY();
-                    int duration = Math.min(
-                            Math.max((int) translationY, mScrollBackAnimMinDuration),
-                            mScrollBackAnimMaxDuration);
-                    buildScrollBackAnimator(translationY, duration);
-                    scrollBackAnimator.start();
-                    isCancel = false;
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    super.onAnimationCancel(animation);
-                    float translationY = mChildView.getTranslationY();
-                    boolean isPaused = animation.isPaused();
-                    log(ANIM_OVER_SCROLL + " onAnimationCancel " + " isPaused: " + isPaused + " translationY : " + translationY);
-                    //if (!isPaused) {
-                        mChildView.setTranslationY(0);
-                    //}
-                    isCancel = true;
-                }
-
-            });
-
-            addAnimator(ANIM_OVER_SCROLL, overScrollAnimator);
-            return overScrollAnimator;
-        }
-
-        Animator buildScrollToAnimator(final float start, final float to, int duration) {
-            int realDuration = Math.min(
-                    Math.max(mScrollToAnimMinDuration, duration),
-                    mScrollToAnimMaxDuration
-            );
-            scrollToAnimator = ObjectAnimator.ofFloat(mChildView, "translationY", start, to);
-            scrollToAnimator.setDuration(realDuration);
-            scrollToAnimator.setInterpolator(mScrollToInterpolator);
-            scrollToAnimator.addListener(new AnimatorListenerAdapter() {
-
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    super.onAnimationStart(animation);
-                    mChildView.setTranslationY(start);
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    super.onAnimationCancel(animation);
-                    float translationY = mChildView.getTranslationY();
-                    boolean isPaused = animation.isPaused();
-                    log(ANIM_SCROLL_TO + " onAnimationCancel " + " isPaused: " + isPaused + " translationY : " + translationY);
-                    //if (!isPaused) {
-                        mChildView.setTranslationY(to);
-                    //}
-                }
-            });
-            addAnimator(ANIM_SCROLL_TO, scrollToAnimator);
-            return scrollToAnimator;
-        }
-
-        void addAnimator(String name, Animator animator) {
-            mAnimators.put(name, animator);
-        }
-
-        void removeAnimator(String name) {
-            mAnimators.remove(name);
-        }
-
-        void clearAllAnimator() {
-            mAnimators.clear();
-        }
-
-        void startAnimator(String name) {
-            Util.checkNotNull(getAnimator(name)).start();
-        }
-
-        Animator getAnimator(String name) {
-            if (mAnimators.containsKey(name)) {
-                return mAnimators.get(name);
-            } else {
-                return null;
-            }
-        }
-
     }
 
     interface IPullListener {

@@ -2,21 +2,16 @@ package com.amy.inertiapulltorefreshview.sub;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.amy.inertiapulltorefreshview.R;
-import com.amy.library.inertia.PullListenerAdapter;
-import com.amy.library.inertia.PullToRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +30,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
         mContext = this;
         setContentView(R.layout.recycler_view_layout);
         setTitle("RecyclerView");
-        PullToRefreshLayout.enableDebug(true, "amy");
-        PullToRefreshLayout pullToRefreshLayout = (PullToRefreshLayout) findViewById(R.id.pull_to_refresh);
+        /*PullToRefreshLayout pullToRefreshLayout = (PullToRefreshLayout) findViewById(R.id.pull_to_refresh);
         pullToRefreshLayout.setEnableHeaderPullToRefresh(true);
         pullToRefreshLayout.addOnPullListener("sample", new PullListenerAdapter() {
             @Override
@@ -60,7 +54,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
                     }
                 }, 2000);
             }
-        });
+        });*/
         initRecyclerView();
     }
 
@@ -69,11 +63,15 @@ public class RecyclerViewActivity extends AppCompatActivity {
             mStrings.add("item  " + i);
         }
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mRecyclerView.setOnTouchListener(new View.OnTouchListener() {
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                Log.d("amy", "event : " + event);
-                return false;
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
             }
         });
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));

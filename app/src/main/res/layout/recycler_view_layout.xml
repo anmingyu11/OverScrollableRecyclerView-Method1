@@ -4,18 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.amy.library.inertia.PullToRefreshLayout
-        android:id="@+id/pull_to_refresh"
+    <com.amy.library.view.InertiaRecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/colorAccent"
-            android:overScrollMode="never"/>
-
-    </com.amy.library.inertia.PullToRefreshLayout>
+        android:layout_height="match_parent"
+        android:background="@color/colorAccent"
+        android:overScrollMode="never"/>
 
 </FrameLayout>
