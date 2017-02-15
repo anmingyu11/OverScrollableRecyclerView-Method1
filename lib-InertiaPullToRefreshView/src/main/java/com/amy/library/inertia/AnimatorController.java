@@ -14,9 +14,9 @@ import com.amy.library.LogUtil;
 import java.util.HashMap;
 
 import static com.amy.library.Util.checkNotNull;
-import static com.amy.library.inertia.PullToRefreshLayout.ANIM_OVER_SCROLL;
-import static com.amy.library.inertia.PullToRefreshLayout.ANIM_SCROLL_BACK;
-import static com.amy.library.inertia.PullToRefreshLayout.ANIM_SCROLL_TO;
+import static com.amy.library.inertia.InertiaPullToRefreshLayout.ANIM_OVER_SCROLL;
+import static com.amy.library.inertia.InertiaPullToRefreshLayout.ANIM_SCROLL_BACK;
+import static com.amy.library.inertia.InertiaPullToRefreshLayout.ANIM_SCROLL_TO;
 
 final class AnimatorController {
 

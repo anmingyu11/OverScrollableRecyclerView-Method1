@@ -26,7 +26,7 @@ import com.amy.scrolldetector.ScrollUtil;
 import java.util.HashMap;
 
 
-public class PullToRefreshLayout extends FrameLayout {
+public class InertiaPullToRefreshLayout extends FrameLayout {
 
     private Context mContext;
     private int mTouchSlop;
@@ -120,15 +120,15 @@ public class PullToRefreshLayout extends FrameLayout {
     //PullListeners
     private final HashMap<String, IPullListener> mPullListeners = new HashMap<String, IPullListener>();
 
-    public PullToRefreshLayout(Context context) {
+    public InertiaPullToRefreshLayout(Context context) {
         this(context, null, 0);
     }
 
-    public PullToRefreshLayout(Context context, AttributeSet attrs) {
+    public InertiaPullToRefreshLayout(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public PullToRefreshLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public InertiaPullToRefreshLayout(Context context, AttributeSet attrs, int defStyleAttr) {
 
         super(context, attrs, defStyleAttr);
 
@@ -189,20 +189,28 @@ public class PullToRefreshLayout extends FrameLayout {
     }
 
     private void initRecyclerViewScrollListener() {
-        ScrollDetector.detectScroll((RecyclerView) mChildView, new OnScrollDetectorListenerAdapter() {
+        RecyclerView recyclerView = (RecyclerView) mChildView;
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             final int DY_SIZE = 2;
             int currentIndexOfdYArray = 0;
             int[] dYArray = new int[DY_SIZE];
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
 
             @Override
-            public void onScrolled(View view, int dx, int dy) {
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
                 if (currentIndexOfdYArray > 1) {
                     currentIndexOfdYArray = 0;
                 }
 
                 dYArray[currentIndexOfdYArray++] = dy;
             }
+        });
 
+        ScrollDetector.detectScroll((RecyclerView) mChildView, new OnScrollDetectorListenerAdapter() {
             @Override
             public void onScrollToBottom() {
                 if (!isInTouching) {
@@ -389,7 +397,7 @@ public class PullToRefreshLayout extends FrameLayout {
                 super.onAnimationEnd(animation);
                 isHeaderRefreshing = true;
                 for (IPullListener iPullListener : mPullListeners.values()) {
-                    iPullListener.onHeaderRefresh(PullToRefreshLayout.this);
+                    iPullListener.onHeaderRefresh(InertiaPullToRefreshLayout.this);
                 }
             }
 
@@ -412,7 +420,7 @@ public class PullToRefreshLayout extends FrameLayout {
                 super.onAnimationEnd(animation);
                 isHeaderRefreshing = true;
                 for (IPullListener iPullListener : mPullListeners.values()) {
-                    iPullListener.onFooterRefresh(PullToRefreshLayout.this);
+                    iPullListener.onFooterRefresh(InertiaPullToRefreshLayout.this);
                 }
             }
 
@@ -427,17 +435,17 @@ public class PullToRefreshLayout extends FrameLayout {
 
     interface IPullListener {
 
-        void onPullingHeader(PullToRefreshLayout pullToRefreshLayout, float fraction);
+        void onPullingHeader(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
 
-        void onPullingFooter(PullToRefreshLayout pullToRefreshLayout, float fraction);
+        void onPullingFooter(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
 
-        void onPullHeaderReleasing(PullToRefreshLayout pullToRefreshLayout, float fraction);
+        void onPullHeaderReleasing(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
 
-        void onPullFooterReleasing(PullToRefreshLayout pullToRefreshLayout, float fraction);
+        void onPullFooterReleasing(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
 
-        void onHeaderRefresh(PullToRefreshLayout pullToRefreshLayout);
+        void onHeaderRefresh(InertiaPullToRefreshLayout inertiaPullToRefreshLayout);
 
-        void onFooterRefresh(PullToRefreshLayout pullToRefreshLayout);
+        void onFooterRefresh(InertiaPullToRefreshLayout inertiaPullToRefreshLayout);
 
         void onFinishHeaderRefresh();
 

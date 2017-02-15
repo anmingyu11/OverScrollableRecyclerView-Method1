@@ -1,4 +1,4 @@
 include ':app'
 include ':lib-InertiaPullToRefreshView'
-include ':lib-ScrollDetector'
-project(':lib-ScrollDetector').projectDir = new File('/home/amy/mygithub/ScrollStateDetector/lib-ScrollDetector')
+//include ':lib-ScrollDetector'
+//project(':lib-ScrollDetector').projectDir = new File('/home/amy/mygithub/ScrollStateDetector/lib-ScrollDetector')

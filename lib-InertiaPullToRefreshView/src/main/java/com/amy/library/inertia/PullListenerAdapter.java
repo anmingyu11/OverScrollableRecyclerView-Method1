@@ -1,12 +1,12 @@
 package com.amy.library.inertia;
 
-public abstract class PullListenerAdapter implements PullToRefreshLayout.IPullListener {
+public abstract class PullListenerAdapter implements InertiaPullToRefreshLayout.IPullListener {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void onPullingHeader(PullToRefreshLayout pullToRefreshLayout, float fraction) {
+    public void onPullingHeader(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction) {
 
     }
 
@@ -14,7 +14,7 @@ public abstract class PullListenerAdapter implements PullToRefreshLayout.IPullLi
      * {@inheritDoc}
      */
     @Override
-    public void onPullingFooter(PullToRefreshLayout pullToRefreshLayout, float fraction) {
+    public void onPullingFooter(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction) {
 
     }
 
@@ -22,7 +22,7 @@ public abstract class PullListenerAdapter implements PullToRefreshLayout.IPullLi
      * {@inheritDoc}
      */
     @Override
-    public void onPullHeaderReleasing(PullToRefreshLayout pullToRefreshLayout, float fraction) {
+    public void onPullHeaderReleasing(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction) {
 
     }
 
@@ -30,7 +30,7 @@ public abstract class PullListenerAdapter implements PullToRefreshLayout.IPullLi
      * {@inheritDoc}
      */
     @Override
-    public void onPullFooterReleasing(PullToRefreshLayout pullToRefreshLayout, float fraction) {
+    public void onPullFooterReleasing(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction) {
 
     }
 
@@ -38,7 +38,7 @@ public abstract class PullListenerAdapter implements PullToRefreshLayout.IPullLi
      * {@inheritDoc}
      */
     @Override
-    public void onHeaderRefresh(PullToRefreshLayout pullToRefreshLayout) {
+    public void onHeaderRefresh(InertiaPullToRefreshLayout inertiaPullToRefreshLayout) {
 
     }
 
@@ -46,7 +46,7 @@ public abstract class PullListenerAdapter implements PullToRefreshLayout.IPullLi
      * {@inheritDoc}
      */
     @Override
-    public void onFooterRefresh(PullToRefreshLayout pullToRefreshLayout) {
+    public void onFooterRefresh(InertiaPullToRefreshLayout inertiaPullToRefreshLayout) {
 
     }
 

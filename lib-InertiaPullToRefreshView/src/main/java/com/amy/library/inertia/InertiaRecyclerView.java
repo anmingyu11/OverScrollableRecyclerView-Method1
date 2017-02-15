@@ -1,4 +1,5 @@
-package com.amy.library.view;
+//Todo copyRight
+package com.amy.library.inertia;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
@@ -7,9 +8,17 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 
 import com.amy.library.LogUtil;
-import com.amy.scrolldetector.ScrollUtil;
+import com.amy.library.ScrollUtil;
 
+/**
+ * If only use this view , only inertia over scroll can be used.
+ */
 public class InertiaRecyclerView extends RecyclerView {
+
+    private InertiaPullToRefreshLayout mFather;
+
+    private boolean isEnableInertiaHeaderOverScroll = true;
+    private boolean isEnableInertiaFooterOverScroll = true;
 
     private int go = 0;
     private boolean isGo = false;
@@ -28,6 +37,7 @@ public class InertiaRecyclerView extends RecyclerView {
 
     private int mScrollState;
     private String[] stateString = new String[]{"idle", "dragging", "settling"};
+
     private int dy;
 
     public InertiaRecyclerView(Context context) {
@@ -40,6 +50,20 @@ public class InertiaRecyclerView extends RecyclerView {
 
     public InertiaRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        initFather();
+    }
+
+    private void initFather() {
+        if (getParent() instanceof InertiaPullToRefreshLayout) {
+            mFather = (InertiaPullToRefreshLayout) getParent();
+        } else {
+            mFather = null;
+        }
     }
 
     @Override
@@ -56,25 +80,19 @@ public class InertiaRecyclerView extends RecyclerView {
         isScrollToBottom = ScrollUtil.isChildScrollToBottom(this) && !ScrollUtil.isChildScrollToTop(this);
         isScrollToTop = ScrollUtil.isChildScrollToTop(this) && !ScrollUtil.isChildScrollToBottom(this);
 
-        if (isScrollToTop
-                || isScrollToBottom) {
-            if (mScrollState == SCROLL_STATE_DRAGGING) {
-                mPullOverScrollY = mTouchDy;
-            } else {
-                mPullOverScrollY = 0;
-                mPullOverScrollDy = 0;
+        if (isGo) {
+            if (isScrollToTop) {
+                LogUtil.d("isScrollToTop : " + isScrollToTop);
+            } else if (isScrollToBottom) {
+                LogUtil.d("isScrollToBottom : " + isScrollToBottom);
             }
-        } else {
-            mPullOverScrollY = 0;
-            mPullOverScrollDy = 0;
         }
-        LogUtil.d("isScrollToBottom : " + isScrollToBottom + " isScrollToTop : " + isScrollToTop);
+
     }
 
     @Override
     public float getTranslationY() {
         float translationY = super.getTranslationY();
-
         return translationY;
     }
 
@@ -99,6 +117,7 @@ public class InertiaRecyclerView extends RecyclerView {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
+        /*
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
                 mLastX = e.getX();
@@ -139,6 +158,7 @@ public class InertiaRecyclerView extends RecyclerView {
         }
         if (mScrollState == SCROLL_STATE_DRAGGING) {
         }
+        */
         return super.onTouchEvent(e);
     }
 
