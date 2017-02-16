@@ -15,12 +15,12 @@ import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
+import com.amy.library.LogUtil;
 import com.amy.library.ScrollUtil;
 import com.amy.library.interfaces.IFooterView;
 import com.amy.library.interfaces.IHeaderView;
 
 import java.util.HashMap;
-
 import static com.amy.library.LogUtil.d;
 import static com.amy.library.LogUtil.v;
 
@@ -31,9 +31,10 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
     private int mTouchSlop;
 
     //Pull state
-    private static final int PULLING_HEADER = 1;
-    private static final int PULLING_FOOTER = 2;
-    private static final int FLINGING = 3;
+    private static final int ACTION_DOWN = 1;
+    private static final int PULLING_HEADER = 2;
+    private static final int PULLING_FOOTER = 3;
+    private static final int FLINGING = 4;
     private int mState = 0;
 
     /**
@@ -71,7 +72,6 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
 
     private boolean isEnableInertiaOverScrollHeaderShow = false;
     private boolean isEnableInertiaOverScrollFooterShow = false;
-
     private boolean isEnableHeaderPullOverScroll = true;
     private boolean isEnableFooterPullOverScroll = true;
 
@@ -255,16 +255,17 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        /*
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN: {
+                LogUtil.d("Intercept action down");
                 mTouchX = ev.getX();
                 mTouchY = ev.getY();
-                //mAnimatorController.pauseAllAnim();
-                //mAnimatorController.cancelAllAnim();
+                mState = ACTION_DOWN;
+                mAnimatorController.pauseAllAnim();
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
+                LogUtil.d("Intercept action move");
                 float dX = ev.getX() - mTouchX;
                 float dY = ev.getY() - mTouchY;
                 if (Math.abs(dX) <= Math.abs(dY)) {
@@ -285,13 +286,12 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 break;
             }
         }
-        */
         return super.onInterceptTouchEvent(ev);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        /*
+
         if (isHeaderRefreshing | isFooterRefreshing) {
             return super.onTouchEvent(event);
         }
@@ -348,7 +348,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
         }
 
         isInTouching = false;
-        */
+
         return super.onTouchEvent(event);
     }
 
@@ -356,14 +356,14 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
         float translationY = mChildView.getTranslationY();
         d("animChildViewScrollBack : " + "translationY : " + translationY);
         int duration = (int) Math.abs(translationY);
-        mAnimatorController.cancelAllAnim();
+        mAnimatorController.pauseAllAnim();
         mAnimatorController.buildScrollBackAnimator(translationY, duration);
         mAnimatorController.startAnimator(ANIM_SCROLL_BACK);
     }
 
     private void animChildViewScrollTo(float start, float to, int duration) {
         d("animChildViewScrollTo : " + "start :" + start + " to : " + to + " duration : " + duration);
-        mAnimatorController.cancelAllAnim();
+        mAnimatorController.pauseAllAnim();
         mAnimatorController.buildScrollToAnimator(start, to, duration);
         mAnimatorController.startAnimator(ANIM_SCROLL_TO);
     }
