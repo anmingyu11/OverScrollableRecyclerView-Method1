@@ -15,15 +15,14 @@ import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
-import com.amy.library.LogUtil;
-import com.amy.library.Util;
+import com.amy.library.ScrollUtil;
 import com.amy.library.interfaces.IFooterView;
 import com.amy.library.interfaces.IHeaderView;
-import com.amy.scrolldetector.OnScrollDetectorListenerAdapter;
-import com.amy.scrolldetector.ScrollDetector;
-import com.amy.scrolldetector.ScrollUtil;
 
 import java.util.HashMap;
+
+import static com.amy.library.LogUtil.d;
+import static com.amy.library.LogUtil.v;
 
 
 public class InertiaPullToRefreshLayout extends FrameLayout {
@@ -115,7 +114,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
     public static final String ANIM_SCROLL_BACK = "ANIM_SCROLL_BACK";
     public static final String ANIM_SCROLL_TO = "ANIM_SCROLL_TO";
     public static final String ANIM_OVER_SCROLL = "ANIM_OVER_SCROLL";
-    private final AnimatorController mAnimatorController = new AnimatorController(mChildView);
+    private AnimatorController mAnimatorController = null;
 
     //PullListeners
     private final HashMap<String, IPullListener> mPullListeners = new HashMap<String, IPullListener>();
@@ -148,7 +147,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
 
         initChildView();
 
-        initGestureDetector();
+        //initGestureDetector();
 
         initFooterAndHeader();
 
@@ -167,9 +166,13 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
             mChildView = getChildAt(0);
         }
 
-        if (mChildView == null) {
+        if (mChildView != null) {
+            mAnimatorController = new AnimatorController(mChildView);
+        } else {
             throw new NullPointerException("ChildView cannot be null.");
-        } else if (mChildView instanceof RecyclerView) {
+        }
+
+        if (mChildView instanceof RecyclerView) {
             initRecyclerViewScrollListener();
         } else if (mChildView instanceof ScrollView) {
             //Todo do this in future
@@ -185,15 +188,18 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
         }
     }
 
-    private void initGestureDetector() {
-    }
-
     private void initRecyclerViewScrollListener() {
         RecyclerView recyclerView = (RecyclerView) mChildView;
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            final String[] scrollStates = new String[]{
+                    "SCROLL_STATE_IDLE",
+                    "SCROLL_STATE_DRAGGING",
+                    "SCROLL_STATE_SETTLING"};
             final int DY_SIZE = 2;
             int currentIndexOfdYArray = 0;
             int[] dYArray = new int[DY_SIZE];
+
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
@@ -207,29 +213,25 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 }
 
                 dYArray[currentIndexOfdYArray++] = dy;
-            }
-        });
 
-        ScrollDetector.detectScroll((RecyclerView) mChildView, new OnScrollDetectorListenerAdapter() {
-            @Override
-            public void onScrollToBottom() {
-                if (!isInTouching) {
-                    LogUtil.d(Util.spellArray(dYArray));
+                int state = recyclerView.getScrollState();
+                v("isChildScrollToTop : " + ScrollUtil.isChildScrollToTop(recyclerView)
+                        + " isChildScrollToBottom : " + ScrollUtil.isChildScrollToBottom(recyclerView)
+                        + "\nstate  : " + scrollStates[state]);
 
-                    int max = Util.getMaxAbs(dYArray);
+                if (state == RecyclerView.SCROLL_STATE_SETTLING) {
+                    if (ScrollUtil.isChildScrollToBottom(recyclerView) && ScrollUtil.isChildScrollToTop(recyclerView)) {
+                    } else {
+                        int vY = 0;
+                        for (int i = 0; i < DY_SIZE; i++) {
+                            if (Math.abs(dYArray[i]) > Math.abs(vY)) {
+                                vY = dYArray[i];
+                            }
+                        }
 
-                    animChildViewOverScroll(-max);
-                }
-            }
-
-            @Override
-            public void onScrollToTop() {
-                if (!isInTouching) {
-                    LogUtil.d(Util.spellArray(dYArray));
-
-                    int max = Util.getMaxAbs(dYArray);
-
-                    animChildViewOverScroll(-max);
+                        d("dYArray : [ " + dYArray[0] + " ] " + " [ " + dYArray[1] + " ] ");
+                        animChildViewOverScroll(-vY);
+                    }
                 }
             }
         });
@@ -253,6 +255,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        /*
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN: {
                 mTouchX = ev.getX();
@@ -282,11 +285,13 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 break;
             }
         }
+        */
         return super.onInterceptTouchEvent(ev);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        /*
         if (isHeaderRefreshing | isFooterRefreshing) {
             return super.onTouchEvent(event);
         }
@@ -343,12 +348,13 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
         }
 
         isInTouching = false;
+        */
         return super.onTouchEvent(event);
     }
 
     private void animChildViewScrollBack() {
         float translationY = mChildView.getTranslationY();
-        LogUtil.d("animChildViewScrollBack : " + "translationY : " + translationY);
+        d("animChildViewScrollBack : " + "translationY : " + translationY);
         int duration = (int) Math.abs(translationY);
         mAnimatorController.cancelAllAnim();
         mAnimatorController.buildScrollBackAnimator(translationY, duration);
@@ -356,14 +362,14 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
     }
 
     private void animChildViewScrollTo(float start, float to, int duration) {
-        LogUtil.d("animChildViewScrollTo : " + "start :" + start + " to : " + to + " duration : " + duration);
+        d("animChildViewScrollTo : " + "start :" + start + " to : " + to + " duration : " + duration);
         mAnimatorController.cancelAllAnim();
         mAnimatorController.buildScrollToAnimator(start, to, duration);
         mAnimatorController.startAnimator(ANIM_SCROLL_TO);
     }
 
     private void animChildViewOverScroll(float distanceY) {
-        LogUtil.d("animChildViewOverScroll : " + "dY : " + distanceY);
+        d("animChildViewOverScroll : " + "dY : " + distanceY);
         mAnimatorController.cancelAllAnim();
         mAnimatorController.buildOverScrollAnimator(distanceY);
         mAnimatorController.startAnimator(ANIM_OVER_SCROLL);
