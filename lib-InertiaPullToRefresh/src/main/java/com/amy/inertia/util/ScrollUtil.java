@@ -1,4 +1,4 @@
-package com.amy.library;
+package com.amy.inertia.util;
 
 import android.os.Build;
 import android.support.v4.view.ViewCompat;

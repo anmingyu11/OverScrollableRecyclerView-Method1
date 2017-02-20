@@ -3,27 +3,28 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <!--
 
-    <com.amy.library.inertia.InertiaPullToRefreshLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view"
+        <com.amy.inertia.inertia.InertiaPullToRefreshLayout
             android:layout_width="match_parent"
-            android:background="@color/colorAccent"
             android:layout_height="match_parent">
+    -->
 
-
-        </android.support.v7.widget.RecyclerView>
-
-    </com.amy.library.inertia.InertiaPullToRefreshLayout>
-<!--
-    <com.amy.library.inertia.InertiaRecyclerView
+    <com.amy.inertia.view.ARecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorAccent"
-        android:overScrollMode="never"/>
--->
+        android:background="@color/colorAccent">
+
+
+    </com.amy.inertia.view.ARecyclerView>
+
+    <!--
+        <com.amy.library.inertia.InertiaRecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent"
+            android:overScrollMode="never"/>
+    -->
 </FrameLayout>

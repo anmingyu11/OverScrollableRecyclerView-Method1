@@ -1,4 +1,4 @@
-package com.amy.library.inertia;
+package com.amy.inertia.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -9,14 +9,14 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
-import com.amy.library.LogUtil;
+import com.amy.inertia.util.LogUtil;
 
 import java.util.HashMap;
 
-import static com.amy.library.Util.checkNotNull;
-import static com.amy.library.inertia.InertiaPullToRefreshLayout.ANIM_OVER_SCROLL;
-import static com.amy.library.inertia.InertiaPullToRefreshLayout.ANIM_SCROLL_BACK;
-import static com.amy.library.inertia.InertiaPullToRefreshLayout.ANIM_SCROLL_TO;
+import static com.amy.inertia.util.Util.checkNotNull;
+import static com.amy.inertia.view.PullToRefreshContainer.ANIM_OVER_SCROLL;
+import static com.amy.inertia.view.PullToRefreshContainer.ANIM_SCROLL_BACK;
+import static com.amy.inertia.view.PullToRefreshContainer.ANIM_SCROLL_TO;
 
 final class AnimatorController {
 

@@ -1,4 +1,4 @@
-package com.amy.library.interfaces;
+package com.amy.inertia.interfaces;
 
 import android.view.View;
 

@@ -20,9 +20,12 @@ public class ScrollViewActivity extends AppCompatActivity {
         LogUtil.d(" scroll view child count : " + childCount);
         scrollView.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
 
+            int oldScrollY = 0;
+
             @Override
             public void onScrollChanged() {
-                LogUtil.d("ScrollView scroll changed  scroll view : " + scrollView.getScrollY());
+                LogUtil.d("ScrollView scroll changed  scroll view : " + (scrollView.getScrollY() - oldScrollY));
+                oldScrollY = scrollView.getScrollY();
                 LogUtil.d("Height : " + scrollView.getHeight());
             }
         });

@@ -13,5 +13,6 @@ public class AbsListViewActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
         super.onCreate(savedInstanceState, persistentState);
         setContentView(R.layout.abs_list_view_layout);
+
     }
 }

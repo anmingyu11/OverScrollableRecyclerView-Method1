@@ -24,3 +24,18 @@
 #### 完成了recyclerView的惯性滑动适配部分，隐约感觉其他的可滚动控件应该不适合这种方式，可能采用延时方式，不过下面要做的
 #### Todo : 
 ####      触摸事件对动画的中断控制,在内部view 中会用setOnTouchListener的方式来解决动画中断，但是这点有弊端就是会吃掉控件原本的onTouchListener,所以这是一种方案，以后会建立另外一种，即嵌套模式来处理这个事．
+
+### 2017.2.17
+### --------------------------------------------
+#### 在控件中重写状态变化，onScrollStateChange方法，寻找可通用方案，目前有几个状态
+### 1.STATE_DRAGGING.
+### 2.STATE_OVER_SCROLL_HEADER.
+### 3.STATE_OVER_SCROLL_FOOTER.
+### 4.STATE_OVER_FLING_FOOTER.
+### 5.STATE_SETTLING.
+### 6.STATE_IDLE.
+### 7.STATE_OVER_FLING_HEADER.
+
+### 2017.2.20
+### --------------------------------------------
+####　RecyclerView的状态变化逻辑完成了，接下来是将父view 和子view绑定起来，也就是下拉刷新模块．

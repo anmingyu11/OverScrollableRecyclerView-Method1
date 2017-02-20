@@ -2,7 +2,7 @@ package com.amy.inertiapulltorefreshview;
 
 import android.view.View;
 
-import com.amy.library.interfaces.IHeaderView;
+import com.amy.inertia.interfaces.IHeaderView;
 
 public class HeaderView implements IHeaderView{
 

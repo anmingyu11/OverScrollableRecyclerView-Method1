@@ -1,4 +1,4 @@
-package com.amy.library;
+package com.amy.inertia.util;
 
 import android.content.Context;
 import android.util.DisplayMetrics;

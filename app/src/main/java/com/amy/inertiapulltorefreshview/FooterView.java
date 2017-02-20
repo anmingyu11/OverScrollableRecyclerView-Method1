@@ -2,7 +2,7 @@ package com.amy.inertiapulltorefreshview;
 
 import android.view.View;
 
-import com.amy.library.interfaces.IFooterView;
+import com.amy.inertia.interfaces.IFooterView;
 
 public class FooterView implements IFooterView {
 

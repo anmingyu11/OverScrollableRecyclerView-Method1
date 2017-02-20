@@ -26,6 +26,6 @@ android {
 }
 
 dependencies {
-    compile project(':lib-InertiaPullToRefreshView')
+    compile project(':lib-InertiaPullToRefresh')
     compile 'com.android.support:appcompat-v7:25.1.0'
 }

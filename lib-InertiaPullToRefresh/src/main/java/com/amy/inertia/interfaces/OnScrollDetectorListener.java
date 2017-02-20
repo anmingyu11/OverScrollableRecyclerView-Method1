@@ -1,4 +1,4 @@
-package com.amy.library.interfaces;
+package com.amy.inertia.interfaces;
 
 import android.view.View;
 
@@ -6,9 +6,10 @@ public interface OnScrollDetectorListener<T extends View> {
 
     void onScrolled(T t, int dx, int dy);
 
-    void onScrollToBottom();
+    void onScrollStateChanged(int newState);
 
-    void onScrollToTop();
+    void onNotFullVisible();
 
-    void onScrollInContent();
+    void onFullVisible();
+
 }

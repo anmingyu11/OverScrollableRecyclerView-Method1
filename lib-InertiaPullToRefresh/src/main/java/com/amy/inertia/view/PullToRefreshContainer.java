@@ -1,4 +1,4 @@
-package com.amy.library.inertia;
+package com.amy.inertia.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -15,17 +15,16 @@ import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
-import com.amy.library.LogUtil;
-import com.amy.library.ScrollUtil;
-import com.amy.library.interfaces.IFooterView;
-import com.amy.library.interfaces.IHeaderView;
+import com.amy.inertia.util.LogUtil;
+import com.amy.inertia.util.ScrollUtil;
 
 import java.util.HashMap;
-import static com.amy.library.LogUtil.d;
-import static com.amy.library.LogUtil.v;
+
+import static com.amy.inertia.util.LogUtil.d;
+import static com.amy.inertia.util.LogUtil.v;
 
 
-public class InertiaPullToRefreshLayout extends FrameLayout {
+public class PullToRefreshContainer extends FrameLayout {
 
     private Context mContext;
     private int mTouchSlop;
@@ -50,12 +49,12 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
     /**
      * Header View
      */
-    private IHeaderView mHeaderView;
+    private com.amy.inertia.interfaces.IHeaderView mHeaderView;
 
     /**
      * Bottom View
      */
-    private IFooterView mFooterView;
+    private com.amy.inertia.interfaces.IFooterView mFooterView;
 
     private View mChildView;
 
@@ -119,15 +118,15 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
     //PullListeners
     private final HashMap<String, IPullListener> mPullListeners = new HashMap<String, IPullListener>();
 
-    public InertiaPullToRefreshLayout(Context context) {
+    public PullToRefreshContainer(Context context) {
         this(context, null, 0);
     }
 
-    public InertiaPullToRefreshLayout(Context context, AttributeSet attrs) {
+    public PullToRefreshContainer(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public InertiaPullToRefreshLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public PullToRefreshContainer(Context context, AttributeSet attrs, int defStyleAttr) {
 
         super(context, attrs, defStyleAttr);
 
@@ -173,7 +172,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
         }
 
         if (mChildView instanceof RecyclerView) {
-            initRecyclerViewScrollListener();
+            initRecyclerView();
         } else if (mChildView instanceof ScrollView) {
             //Todo do this in future
             throw new IllegalArgumentException("ChildView is : " + mChildView.getClass().getName() + " not the right view");
@@ -188,8 +187,35 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
         }
     }
 
-    private void initRecyclerViewScrollListener() {
+    private void processChildViewTouchEvent(MotionEvent event) {
+        int action = event.getAction();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN: {
+                LogUtil.d("Child View Action Down");
+                mAnimatorController.pauseAllAnim();
+                return;
+            }
+            case MotionEvent.ACTION_UP: {
+                LogUtil.d("Child View Action Up");
+                mAnimatorController.resumeAllAnim();
+                return;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                LogUtil.d("Child View Action Move");
+                return;
+            }
+        }
+    }
+
+    private void initRecyclerView() {
         RecyclerView recyclerView = (RecyclerView) mChildView;
+        recyclerView.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                processChildViewTouchEvent(event);
+                return false;
+            }
+        });
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
 
             final String[] scrollStates = new String[]{
@@ -215,6 +241,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 dYArray[currentIndexOfdYArray++] = dy;
 
                 int state = recyclerView.getScrollState();
+
                 v("isChildScrollToTop : " + ScrollUtil.isChildScrollToTop(recyclerView)
                         + " isChildScrollToBottom : " + ScrollUtil.isChildScrollToBottom(recyclerView)
                         + "\nstate  : " + scrollStates[state]);
@@ -260,7 +287,6 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 LogUtil.d("Intercept action down");
                 mTouchX = ev.getX();
                 mTouchY = ev.getY();
-                mState = ACTION_DOWN;
                 mAnimatorController.pauseAllAnim();
                 break;
             }
@@ -270,13 +296,13 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 float dY = ev.getY() - mTouchY;
                 if (Math.abs(dX) <= Math.abs(dY)) {
                     if (dY > 0
-                            && !ScrollUtil.isChildScrollToBottom(mChildView)
+                            && !ScrollUtil.isChildScrollToBottom(mChildView) && ScrollUtil.isChildScrollToTop(mChildView)
                             && (isEnableHeaderPullOverScroll || isEnableHeaderPullToRefresh)) {
                         LogUtil.d("Intercepted state is pulling header ");
                         mState = PULLING_HEADER;
                         return true;
                     } else if (dY < 0
-                            && !ScrollUtil.isChildScrollToTop(mChildView)
+                            && !ScrollUtil.isChildScrollToTop(mChildView) && ScrollUtil.isChildScrollToBottom(mChildView)
                             && (isEnableFooterPullOverScroll || isEnableFooterPullToRefresh)) {
                         LogUtil.d("Intercepted state is pulling footer ");
                         mState = PULLING_FOOTER;
@@ -308,7 +334,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
 
                     mChildView.setTranslationY(dY * pullOverScrollDamp);
                     mHeaderContainer.getLayoutParams().height = (int) Math.abs(dY * pullOverScrollDamp);
-                    //LogUtil.d("pulling header : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
+                    LogUtil.d("pulling header : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
                     mHeaderContainer.requestLayout();
 
                     handlePullingHeader(dY / mHeaderTriggerRefreshHeight);
@@ -317,7 +343,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
 
                     mChildView.setTranslationY(dY * pullOverScrollDamp);
                     mHeaderContainer.getLayoutParams().height = (int) Math.abs(dY * pullOverScrollDamp);
-                    //LogUtil.d("pulling footer : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
+                    LogUtil.d("pulling footer : " + "dy : " + dY + " headerContainerHeight : " + dY * pullOverScrollDamp);
                     mHeaderContainer.requestLayout();
 
                     handlePullingFooter(dY / mFooterTriggerRefreshHeight);
@@ -403,7 +429,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 super.onAnimationEnd(animation);
                 isHeaderRefreshing = true;
                 for (IPullListener iPullListener : mPullListeners.values()) {
-                    iPullListener.onHeaderRefresh(InertiaPullToRefreshLayout.this);
+                    iPullListener.onHeaderRefresh(PullToRefreshContainer.this);
                 }
             }
 
@@ -426,7 +452,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
                 super.onAnimationEnd(animation);
                 isHeaderRefreshing = true;
                 for (IPullListener iPullListener : mPullListeners.values()) {
-                    iPullListener.onFooterRefresh(InertiaPullToRefreshLayout.this);
+                    iPullListener.onFooterRefresh(PullToRefreshContainer.this);
                 }
             }
 
@@ -441,17 +467,17 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
 
     interface IPullListener {
 
-        void onPullingHeader(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
+        void onPullingHeader(PullToRefreshContainer pullToRefreshContainer, float fraction);
 
-        void onPullingFooter(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
+        void onPullingFooter(PullToRefreshContainer pullToRefreshContainer, float fraction);
 
-        void onPullHeaderReleasing(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
+        void onPullHeaderReleasing(PullToRefreshContainer pullToRefreshContainer, float fraction);
 
-        void onPullFooterReleasing(InertiaPullToRefreshLayout inertiaPullToRefreshLayout, float fraction);
+        void onPullFooterReleasing(PullToRefreshContainer pullToRefreshContainer, float fraction);
 
-        void onHeaderRefresh(InertiaPullToRefreshLayout inertiaPullToRefreshLayout);
+        void onHeaderRefresh(PullToRefreshContainer pullToRefreshContainer);
 
-        void onFooterRefresh(InertiaPullToRefreshLayout inertiaPullToRefreshLayout);
+        void onFooterRefresh(PullToRefreshContainer pullToRefreshContainer);
 
         void onFinishHeaderRefresh();
 
@@ -491,7 +517,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
      *
      * @param headerView
      */
-    public void setHeaderView(final IHeaderView headerView) {
+    public void setHeaderView(final com.amy.inertia.interfaces.IHeaderView headerView) {
         if (headerView != null) {
             mHeaderContainer.removeAllViewsInLayout();
             mHeaderContainer.addView(headerView.getView());
@@ -505,7 +531,7 @@ public class InertiaPullToRefreshLayout extends FrameLayout {
      *
      * @param footerView
      */
-    public void setFooterView(final IFooterView footerView) {
+    public void setFooterView(final com.amy.inertia.interfaces.IFooterView footerView) {
         if (footerView != null) {
             mHeaderContainer.removeAllViewsInLayout();
             mHeaderContainer.addView(footerView.getView());
