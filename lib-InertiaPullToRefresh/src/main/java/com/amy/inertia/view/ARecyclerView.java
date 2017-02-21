@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 
 import com.amy.inertia.interfaces.IAnimatorController;
 import com.amy.inertia.interfaces.IPullToRefreshContainer;
-import com.amy.inertia.interfaces.IAScrollView;
+import com.amy.inertia.interfaces.IAView;
 import com.amy.inertia.interfaces.OnScrollDetectorListener;
 import com.amy.inertia.util.LogUtil;
 import com.amy.inertia.util.ScrollUtil;
@@ -18,7 +18,9 @@ import static com.amy.inertia.view.ScrollViewState.SCROLL_STATE_OVER_FLING_FOOTE
 import static com.amy.inertia.view.ScrollViewState.SCROLL_STATE_OVER_FLING_HEADER;
 import static com.amy.inertia.view.ScrollViewState.SCROLL_STATE_SETTLING_IN_CONTENT;
 
-public class ARecyclerView extends RecyclerView implements IAScrollView {
+public class ARecyclerView extends RecyclerView implements IAView {
+
+    private boolean isInTouching;
 
     private IPullToRefreshContainer mPullToRefreshContainer = null;
 
@@ -43,7 +45,11 @@ public class ARecyclerView extends RecyclerView implements IAScrollView {
         super.onScrollStateChanged(state);
 
         if (state == SCROLL_STATE_IDLE) {
-            mScrollViewState.notifyScrollStateChanged(state);//Scroll state to idle
+            int currentScrollState = mScrollViewState.CurrentScrollState;
+            if (currentScrollState == ScrollViewState.SCROLL_STATE_DRAGGING_IN_CONTENT
+                    || currentScrollState == ScrollViewState.SCROLL_STATE_SETTLING_IN_CONTENT) {
+                mScrollViewState.notifyScrollStateChanged(state);//Scroll state to idle
+            }
         }
 
     }
@@ -86,6 +92,15 @@ public class ARecyclerView extends RecyclerView implements IAScrollView {
         return canScrollVertically(1) && canScrollVertically(-1);
     }
 */
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent e) {
+        if (isInTouching) {
+            return super.onInterceptTouchEvent(e);
+        } else {
+            return false;
+        }
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
@@ -143,7 +158,7 @@ public class ARecyclerView extends RecyclerView implements IAScrollView {
             }
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP: {
-                mScrollViewState.clearTouch();
+                mScrollViewState.resetTouch();
             }
         }
         return super.onTouchEvent(e);
@@ -152,9 +167,18 @@ public class ARecyclerView extends RecyclerView implements IAScrollView {
 
 
     @Override
-    public boolean isCanScrollVertically() {
-        return false;
+    public ScrollViewState getScrollViewState() {
+        return mScrollViewState;
     }
+
+    @Override
+    public void setInTouching(boolean inTouching) {
+        isInTouching = inTouching;
+        if (isInTouching) {
+            mPullToRefreshContainer.setInTouching(false);
+        }
+    }
+
 
     @Override
     public void attachToParent(IPullToRefreshContainer iPullToRefresh) {
@@ -174,6 +198,11 @@ public class ARecyclerView extends RecyclerView implements IAScrollView {
     @Override
     public void removeScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
         mScrollViewState.removeScrollDetectorListener(onScrollDetectorListener);
+    }
+
+    @Override
+    public void clearScrollDetectorListener() {
+        mScrollViewState.clearScrollDetectorListener();
     }
 
     @Override

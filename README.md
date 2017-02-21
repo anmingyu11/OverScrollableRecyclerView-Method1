@@ -28,14 +28,18 @@
 ### 2017.2.17
 ### --------------------------------------------
 #### 在控件中重写状态变化，onScrollStateChange方法，寻找可通用方案，目前有几个状态
-### 1.STATE_DRAGGING.
-### 2.STATE_OVER_SCROLL_HEADER.
-### 3.STATE_OVER_SCROLL_FOOTER.
-### 4.STATE_OVER_FLING_FOOTER.
-### 5.STATE_SETTLING.
-### 6.STATE_IDLE.
-### 7.STATE_OVER_FLING_HEADER.
+##### 1.STATE_DRAGGING.
+##### 2.STATE_OVER_SCROLL_HEADER.
+##### 3.STATE_OVER_SCROLL_FOOTER.
+##### 4.STATE_OVER_FLING_FOOTER.
+##### 5.STATE_SETTLING.
+##### 6.STATE_IDLE.
+##### 7.STATE_OVER_FLING_HEADER.
 
 ### 2017.2.20
 ### --------------------------------------------
 ####　RecyclerView的状态变化逻辑完成了，接下来是将父view 和子view绑定起来，也就是下拉刷新模块．
+##### 要处理view 从idle 状态转化为其他状态　和从其他状态转到idle状态:　以下几种情况．
+##### 1. 从settlingincontent\dragginginconntent　
+##### 2. 从over 家族的四个状态中
+##### 3. 从set translation(0f), 一般为动画结束或者强行中断这种情况.

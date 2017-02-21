@@ -6,7 +6,7 @@ import com.amy.inertia.util.LogUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-final class ScrollViewState {
+public final class ScrollViewState {
     private final List<OnScrollDetectorListener<ARecyclerView>> mOnScrollDetectorListeners = new ArrayList<OnScrollDetectorListener<ARecyclerView>>();
 
     //Touch params
@@ -15,11 +15,11 @@ final class ScrollViewState {
     float touchDX;
     float touchDY;
 
-    void clearTouch() {
-        touchLastX = 0;
-        touchLastY = 0;
-        touchDX = 0;
-        touchDY = 0;
+    void resetTouch() {
+        touchLastX = 0f;
+        touchLastY = 0f;
+        touchDX = 0f;
+        touchDY = 0f;
     }
 
     void setTouchLastXY(float X, float Y) {
@@ -47,6 +47,17 @@ final class ScrollViewState {
         VYArray[CurrentIndexOfVyArray++] = vY;
     }
 
+    int getVy() {
+        int max = VYArray[0];
+
+        for (int i = 0; i < VY_SIZE; i++) {
+            if (VYArray[i] > max) {
+                max = VYArray[i];
+            }
+        }
+        return max;
+    }
+
     //For debug
     static final String[] SCROLL_STATES = new String[]{
             "SCROLL_STATE_IDLE",//0
@@ -58,7 +69,8 @@ final class ScrollViewState {
             "SCROLL_STATE_OVER_FLING_FOOTER"//6
     };
 
-    int ScrollState = SCROLL_STATE_IDLE;
+    int LastScrollState = SCROLL_STATE_IDLE;
+    int CurrentScrollState = SCROLL_STATE_IDLE;
 
     static final int SCROLL_STATE_IDLE = 0;
     static final int SCROLL_STATE_DRAGGING_IN_CONTENT = 1;
@@ -68,14 +80,22 @@ final class ScrollViewState {
     static final int SCROLL_STATE_OVER_FLING_HEADER = 5;
     static final int SCROLL_STATE_OVER_FLING_FOOTER = 6;
 
+    void setScrollState(int newState) {
+        LastScrollState = CurrentScrollState;
+        CurrentScrollState = newState;
+    }
+
     void notifyScrollStateChanged(int newState) {
-        if (ScrollState != newState) {
-            LogUtil.d("Scroll state : " + SCROLL_STATES[newState]);
+        if (CurrentScrollState != newState) {
+            setScrollState(newState);
+            LogUtil.e("----------------");
+            LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
+            LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);
+            LogUtil.e("----------------");
             for (OnScrollDetectorListener onScrollDetectorListener : mOnScrollDetectorListeners) {
                 onScrollDetectorListener.onScrollStateChanged(newState);
             }
         }
-        ScrollState = newState;
     }
 
     public void addScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
@@ -91,6 +111,10 @@ final class ScrollViewState {
             mOnScrollDetectorListeners.add(onScrollDetectorListener);
             LogUtil.d("add onScrollDetectorListener success.");
         }
+    }
+
+    public void clearScrollDetectorListener() {
+        mOnScrollDetectorListeners.clear();
     }
 
     public void removeScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
