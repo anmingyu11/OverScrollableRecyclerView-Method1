@@ -1,10 +1,16 @@
 package com.amy.inertia.interfaces;
 
-import com.amy.inertia.view.ScrollViewState;
+import android.view.MotionEvent;
+
+import com.amy.inertia.view.AViewState;
 
 public interface IAView {
 
-    ScrollViewState getScrollViewState();
+    AViewState getAViewState();
+
+    IPullToRefreshContainer getContainer();
+
+    void handleTouchEvent(MotionEvent e);
 
     void setInTouching(boolean inTouching);
 

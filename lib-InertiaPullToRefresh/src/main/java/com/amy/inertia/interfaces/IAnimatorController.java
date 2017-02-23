@@ -4,15 +4,11 @@ import android.animation.Animator;
 
 public interface IAnimatorController {
 
-    boolean isAnimatorCurrentlyRunning(String key);
+    void attachAView(IAView iAview);
 
-    boolean isAnimatorCurrentlyPaused(String key);
+    boolean isAnimatorCurrentlyRunning(String name);
 
-    void pauseAllAnim();
-
-    void resumeAllAnim();
-
-    void cancelAllAnim();
+    boolean isAnimatorCurrentlyPaused(String name);
 
     void pauseAnim(String name);
 
@@ -20,11 +16,11 @@ public interface IAnimatorController {
 
     void cancelAnim(String name);
 
-    Animator buildScrollBackAnimator(final float start, int duration);
+    void pauseAllAnim();
 
-    Animator buildScrollToAnimator(final float start, final float to, int duration);
+    void resumeAllAnim();
 
-    Animator buildOverScrollAnimator(float vY);
+    void cancelAllAnim();
 
     void addAnimator(String name, Animator animator);
 

@@ -6,27 +6,30 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
+import com.amy.inertia.interfaces.IAView;
 import com.amy.inertia.interfaces.IAnimatorController;
 import com.amy.inertia.interfaces.IPullToRefreshContainer;
-import com.amy.inertia.interfaces.IAView;
 import com.amy.inertia.interfaces.OnScrollDetectorListener;
 import com.amy.inertia.util.LogUtil;
 import com.amy.inertia.util.ScrollUtil;
 import com.amy.inertia.util.Util;
 
-import static com.amy.inertia.view.ScrollViewState.SCROLL_STATE_OVER_FLING_FOOTER;
-import static com.amy.inertia.view.ScrollViewState.SCROLL_STATE_OVER_FLING_HEADER;
-import static com.amy.inertia.view.ScrollViewState.SCROLL_STATE_SETTLING_IN_CONTENT;
+import static com.amy.inertia.view.AViewState.SCROLL_STATE_DRAGGING_IN_CONTENT;
+import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_FOOTER;
+import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_HEADER;
+import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_SCROLL_FOOTER;
+import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_SCROLL_HEADER;
+import static com.amy.inertia.view.AViewState.SCROLL_STATE_SETTLING_IN_CONTENT;
 
 public class ARecyclerView extends RecyclerView implements IAView {
 
-    private boolean isInTouching;
+    private boolean isInTouching = true;
 
     private IPullToRefreshContainer mPullToRefreshContainer = null;
 
     private IAnimatorController mAnimatorController = null;
 
-    private final ScrollViewState mScrollViewState = new ScrollViewState();
+    private final AViewState mAViewState = new AViewState(this);
 
     public ARecyclerView(Context context) {
         super(context);
@@ -45,10 +48,10 @@ public class ARecyclerView extends RecyclerView implements IAView {
         super.onScrollStateChanged(state);
 
         if (state == SCROLL_STATE_IDLE) {
-            int currentScrollState = mScrollViewState.CurrentScrollState;
-            if (currentScrollState == ScrollViewState.SCROLL_STATE_DRAGGING_IN_CONTENT
-                    || currentScrollState == ScrollViewState.SCROLL_STATE_SETTLING_IN_CONTENT) {
-                mScrollViewState.notifyScrollStateChanged(state);//Scroll state to idle
+            int currentScrollState = mAViewState.CurrentScrollState;
+            if (currentScrollState == AViewState.SCROLL_STATE_DRAGGING_IN_CONTENT
+                    || currentScrollState == AViewState.SCROLL_STATE_SETTLING_IN_CONTENT) {
+                mAViewState.notifyScrollStateChanged(state);//Scroll state to idle
             }
         }
 
@@ -58,7 +61,8 @@ public class ARecyclerView extends RecyclerView implements IAView {
     public void onScrolled(int dx, int dy) {
         super.onScrolled(dx, dy);
 
-        mScrollViewState.storeVy(dy);
+        LogUtil.d("onScrolled dy : " + dy + " state : " + mAViewState.CurrentScrollState);
+        mAViewState.storeVy(dy);
 
         if (getScrollState() == SCROLL_STATE_SETTLING) {
             boolean isScrollToTop = ScrollUtil.isChildScrollToTop(this) && !ScrollUtil.isChildScrollToBottom(this);
@@ -66,37 +70,23 @@ public class ARecyclerView extends RecyclerView implements IAView {
             boolean isScrollInContent = ScrollUtil.isChildScrollToBottom(this) && ScrollUtil.isChildScrollToTop(this);
 
             if (isScrollInContent) {
-                mScrollViewState.notifyScrollStateChanged(SCROLL_STATE_SETTLING_IN_CONTENT);
+                mAViewState.notifyScrollStateChanged(SCROLL_STATE_SETTLING_IN_CONTENT);
             } else if (isScrollToBottom) {
-                LogUtil.d("IsScrollToBottom : " + Util.spellArray(mScrollViewState.VYArray));
-                mScrollViewState.notifyScrollStateChanged(SCROLL_STATE_OVER_FLING_FOOTER);
+                LogUtil.d("IsScrollToBottom : " + Util.spellArray(mAViewState.VYArray));
+                mAViewState.notifyScrollStateChanged(SCROLL_STATE_OVER_FLING_FOOTER);
             } else if (isScrollToTop) {
-                LogUtil.d("IsScrollToTop : " + Util.spellArray(mScrollViewState.VYArray));
-                mScrollViewState.notifyScrollStateChanged(SCROLL_STATE_OVER_FLING_HEADER);
+                LogUtil.d("IsScrollToTop : " + Util.spellArray(mAViewState.VYArray));
+                mAViewState.notifyScrollStateChanged(SCROLL_STATE_OVER_FLING_HEADER);
             }
         }
 
     }
 
-/*
-    @Override
-    public boolean canScrollVertically(int direction) {
-        if (Math.abs(getTranslationY()) > 1f) {
-            return false;
-        }
-        return super.canScrollVertically(direction);
-    }
-
-    @Override
-    public boolean isCanScrollVertically() {
-        return canScrollVertically(1) && canScrollVertically(-1);
-    }
-*/
-
     @Override
     public boolean onInterceptTouchEvent(MotionEvent e) {
+        //LogUtil.i("AView intercepting inTouching : " + isInTouching);
         if (isInTouching) {
-            return super.onInterceptTouchEvent(e);
+            return true;
         } else {
             return false;
         }
@@ -104,24 +94,51 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
+
+        // LogUtil.i("AView onTouching inTouching : " + isInTouching);
+        if (!isInTouching) {
+            mPullToRefreshContainer.handleTouchEvent(e);
+            return false;
+        }
+
+        return onHandleTouchEvent(e);
+
+    }
+
+    public AViewState getAViewState() {
+        return mAViewState;
+    }
+
+    @Override
+    public IPullToRefreshContainer getContainer() {
+        return mPullToRefreshContainer;
+    }
+
+    @Override
+    public void handleTouchEvent(MotionEvent e) {
+        onHandleTouchEvent(e);
+    }
+
+    private boolean onHandleTouchEvent(MotionEvent e) {
+
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
-                mScrollViewState.setTouchLastXY(e.getX(), e.getY());
+                mAViewState.setTouchLastXY(e);
                 break;
             }
             case MotionEvent.ACTION_POINTER_DOWN: {
-                mScrollViewState.setTouchLastXY(e.getX(0), e.getY(0));
+                mAViewState.setTouchLastXY(e);
             }
             case MotionEvent.ACTION_MOVE: {
                 boolean fingerScrollUp;
                 boolean fingerScrollDown;
 
-                mScrollViewState.setTouchDXY(e.getX(), e.getY());
+                mAViewState.setTouchDXY(e);
 
-                if (mScrollViewState.touchDY > 0) {
+                if (mAViewState.touchDY > 0) {
                     fingerScrollDown = true;
                     fingerScrollUp = false;
-                } else if (mScrollViewState.touchDY < 0) {
+                } else if (mAViewState.touchDY < 0) {
                     fingerScrollDown = false;
                     fingerScrollUp = true;
                 } else {
@@ -133,42 +150,50 @@ public class ARecyclerView extends RecyclerView implements IAView {
                         && fingerScrollUp
                         && !fingerScrollDown) {
                     //Dragging to bottom
-                    mScrollViewState.notifyScrollStateChanged(ScrollViewState.SCROLL_STATE_OVER_SCROLL_FOOTER);
+                    mAViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_OVER_SCROLL_FOOTER);
                 } else if (!ScrollUtil.isChildScrollToBottom(this)
                         && ScrollUtil.isChildScrollToTop(this)
                         && !fingerScrollUp
                         && fingerScrollDown) {
                     //Dragging to top
-                    mScrollViewState.notifyScrollStateChanged(ScrollViewState.SCROLL_STATE_OVER_SCROLL_HEADER);
+                    mAViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_OVER_SCROLL_HEADER);
                 } else if (ScrollUtil.isChildScrollToTop(this)
                         && ScrollUtil.isChildScrollToBottom(this)) {
                     //Dragging in content
-                    mScrollViewState.notifyScrollStateChanged(ScrollViewState.SCROLL_STATE_DRAGGING_IN_CONTENT);
+                    mAViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_DRAGGING_IN_CONTENT);
                 }
-
                 break;
             }
 
             case MotionEvent.ACTION_POINTER_UP: {
                 int indexOfUpPointer = e.getActionIndex();
                 if (indexOfUpPointer == 0) {
-                    mScrollViewState.setTouchLastXY(e.getX(1), e.getY(1));
+                    mAViewState.setTouchLastXY(e);
                 }
                 break;
             }
-            case MotionEvent.ACTION_CANCEL:
+            //case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP: {
-                mScrollViewState.resetTouch();
+                mAViewState.resetTouch();
             }
         }
-        return super.onTouchEvent(e);
 
-    }
+        LogUtil.d("super called action : " + e.getAction());
+        switch (mAViewState.CurrentScrollState) {
+            case SCROLL_STATE_DRAGGING_IN_CONTENT:
+            case SCROLL_STATE_SETTLING_IN_CONTENT:
+            case SCROLL_STATE_IDLE: {
+                return super.onTouchEvent(e);
+            }
+            case SCROLL_STATE_OVER_FLING_FOOTER:
+            case SCROLL_STATE_OVER_FLING_HEADER:
+            case SCROLL_STATE_OVER_SCROLL_FOOTER:
+            case SCROLL_STATE_OVER_SCROLL_HEADER: {
+                return false;
+            }
+        }
 
-
-    @Override
-    public ScrollViewState getScrollViewState() {
-        return mScrollViewState;
+        return false;
     }
 
     @Override
@@ -179,35 +204,52 @@ public class ARecyclerView extends RecyclerView implements IAView {
         }
     }
 
-
     @Override
     public void attachToParent(IPullToRefreshContainer iPullToRefresh) {
         mPullToRefreshContainer = iPullToRefresh;
+        mPullToRefreshContainer.attachToAView(this);
     }
 
     @Override
     public void attachToAnimatorController(IAnimatorController iAnimatorController) {
         mAnimatorController = iAnimatorController;
+        mAnimatorController.attachAView(this);
     }
 
     @Override
     public void addScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
-        mScrollViewState.addScrollDetectorListener(onScrollDetectorListener);
+        mAViewState.addScrollDetectorListener(onScrollDetectorListener);
     }
 
     @Override
     public void removeScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
-        mScrollViewState.removeScrollDetectorListener(onScrollDetectorListener);
+        mAViewState.removeScrollDetectorListener(onScrollDetectorListener);
     }
 
     @Override
     public void clearScrollDetectorListener() {
-        mScrollViewState.clearScrollDetectorListener();
+        mAViewState.clearScrollDetectorListener();
     }
 
     @Override
     public void setViewTranslationY(float translationY) {
-        setTranslationY(translationY);
+        //LogUtil.d("currentTranslation Y : " + translationY + " lastTranslation Y : " + getTranslationY());
+        int transY = -100;
+        if (translationY > 0f && getTranslationY() < 0f) {
+            transY = 0;
+        } else if (translationY < 0f && getTranslationY() > 0f) {
+            transY = 0;
+        } else {
+            transY = (int) translationY;
+        }
+
+        if (transY == 0) {
+            setTranslationY(transY);
+            mAViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_IDLE);
+            setInTouching(true);
+        } else {
+            setTranslationY(transY);
+        }
     }
 
     @Override

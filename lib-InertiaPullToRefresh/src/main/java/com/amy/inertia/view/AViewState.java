@@ -1,13 +1,23 @@
 package com.amy.inertia.view;
 
+import android.view.MotionEvent;
+
+import com.amy.inertia.interfaces.IAView;
 import com.amy.inertia.interfaces.OnScrollDetectorListener;
 import com.amy.inertia.util.LogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ScrollViewState {
+public final class AViewState {
+
     private final List<OnScrollDetectorListener<ARecyclerView>> mOnScrollDetectorListeners = new ArrayList<OnScrollDetectorListener<ARecyclerView>>();
+
+    private IAView mIAView;
+
+    AViewState(IAView iaView) {
+        mIAView = iaView;
+    }
 
     //Touch params
     float touchLastX;
@@ -22,12 +32,14 @@ public final class ScrollViewState {
         touchDY = 0f;
     }
 
-    void setTouchLastXY(float X, float Y) {
-        touchLastX = X;
-        touchLastY = Y;
+    void setTouchLastXY(MotionEvent e) {
+        touchLastX = e.getRawX();
+        touchLastY = e.getRawY();
     }
 
-    void setTouchDXY(float X, float Y) {
+    void setTouchDXY(MotionEvent e) {
+        float X = e.getRawX();
+        float Y = e.getRawY();
         touchDX = X - touchLastX;
         touchDY = Y - touchLastY;
         touchLastX = X;
@@ -109,7 +121,7 @@ public final class ScrollViewState {
             }
         } else {
             mOnScrollDetectorListeners.add(onScrollDetectorListener);
-            LogUtil.d("add onScrollDetectorListener success.");
+            LogUtil.v("add onScrollDetectorListener success.");
         }
     }
 
