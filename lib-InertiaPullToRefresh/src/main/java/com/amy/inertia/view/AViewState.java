@@ -19,6 +19,8 @@ public final class AViewState {
         mIAView = iaView;
     }
 
+    MotionEvent lastMotionEvent = null;
+
     //Touch params
     float touchLastX;
     float touchLastY;
@@ -35,6 +37,8 @@ public final class AViewState {
     void setTouchLastXY(MotionEvent e) {
         touchLastX = e.getRawX();
         touchLastY = e.getRawY();
+        lastMotionEvent = e;
+        //LogUtil.i("LastY : " + touchLastY);
     }
 
     void setTouchDXY(MotionEvent e) {
@@ -42,8 +46,7 @@ public final class AViewState {
         float Y = e.getRawY();
         touchDX = X - touchLastX;
         touchDY = Y - touchLastY;
-        touchLastX = X;
-        touchLastY = Y;
+        setTouchLastXY(e);
     }
 
     // DY array use this to store scroll velocity.
@@ -98,6 +101,9 @@ public final class AViewState {
     }
 
     void notifyScrollStateChanged(int newState) {
+/*        if (newState == SCROLL_STATE_IDLE) {
+            LogUtil.printTraceStack("state idle changed.");
+        }*/
         if (CurrentScrollState != newState) {
             setScrollState(newState);
             LogUtil.e("----------------");

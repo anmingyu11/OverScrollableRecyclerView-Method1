@@ -10,9 +10,9 @@ public interface IAView {
 
     IPullToRefreshContainer getContainer();
 
-    void handleTouchEvent(MotionEvent e);
-
     void setInTouching(boolean inTouching);
+
+    boolean aViewDispatchTouch(MotionEvent e);
 
     /**
      * Attach to inertia pull to refresh view.
@@ -53,5 +53,7 @@ public interface IAView {
      *
      * @return
      */
-    float getViewTranslationY();
+    int getViewTranslationY();
+
+    int getViewHeight();
 }

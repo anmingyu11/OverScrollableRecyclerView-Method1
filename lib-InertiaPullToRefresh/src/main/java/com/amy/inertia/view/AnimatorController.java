@@ -81,7 +81,7 @@ final class AnimatorController implements IAnimatorController {
 
     public void pauseAnim(String name) {
         Animator animator = getAnimator(name);
-        pauseAnim(name);
+        pauseAnim(animator);
     }
 
     void pauseAnim(Animator animator) {

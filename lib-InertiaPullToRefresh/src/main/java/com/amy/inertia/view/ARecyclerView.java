@@ -1,6 +1,7 @@
 package com.amy.inertia.view;
 
 import android.content.Context;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
@@ -14,7 +15,6 @@ import com.amy.inertia.util.LogUtil;
 import com.amy.inertia.util.ScrollUtil;
 import com.amy.inertia.util.Util;
 
-import static com.amy.inertia.view.AViewState.SCROLL_STATE_DRAGGING_IN_CONTENT;
 import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_FOOTER;
 import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_HEADER;
 import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_SCROLL_FOOTER;
@@ -57,11 +57,17 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     }
 
+    final Handler mHandler = new Handler();
+
     @Override
-    public void onScrolled(int dx, int dy) {
+    public void onScrolled(int dx, final int dy) {
         super.onScrolled(dx, dy);
 
-        LogUtil.d("onScrolled dy : " + dy + " state : " + mAViewState.CurrentScrollState);
+        //LogUtil.d("onScrolled dy : " + dy + " state : " + mAViewState.CurrentScrollState);
+        if (mAViewState.CurrentScrollState == SCROLL_STATE_IDLE) {
+            //Todo:
+            //LogUtil.printTraceStack("idle");
+        }
         mAViewState.storeVy(dy);
 
         if (getScrollState() == SCROLL_STATE_SETTLING) {
@@ -83,25 +89,40 @@ public class ARecyclerView extends RecyclerView implements IAView {
     }
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent e) {
-        //LogUtil.i("AView intercepting inTouching : " + isInTouching);
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        boolean result;
+
         if (isInTouching) {
-            return true;
+            result = super.dispatchTouchEvent(ev);
         } else {
-            return false;
+            //If not is in touching, this touch event send back to parent view.
+            result = false;
         }
+
+        //LogUtil.i("TouchingTest AView dispatching inTouching : " + isInTouching + " result : " + result);
+        //LogUtil.w("TouchingTest AView dispatching : " + ev.getY() + " action : " + ev.getActionMasked());
+        return result;
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent e) {
+        boolean result;
+
+        result = super.onInterceptTouchEvent(e);
+
+        //LogUtil.i("TouchingTest AView intercepting inTouching : " + isInTouching + " result : " + result);
+        return result;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
 
-        // LogUtil.i("AView onTouching inTouching : " + isInTouching);
-        if (!isInTouching) {
-            mPullToRefreshContainer.handleTouchEvent(e);
-            return false;
-        }
+        boolean result;
 
-        return onHandleTouchEvent(e);
+        result = handleTouchEvent(e);
+
+        // LogUtil.i("TouchingTest AView onTouching inTouching : " + isInTouching + " result : " + result);
+        return result;
 
     }
 
@@ -114,12 +135,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
         return mPullToRefreshContainer;
     }
 
-    @Override
-    public void handleTouchEvent(MotionEvent e) {
-        onHandleTouchEvent(e);
-    }
-
-    private boolean onHandleTouchEvent(MotionEvent e) {
+    private boolean handleTouchEvent(MotionEvent e) {
 
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
@@ -172,36 +188,31 @@ public class ARecyclerView extends RecyclerView implements IAView {
                 }
                 break;
             }
-            //case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP: {
                 mAViewState.resetTouch();
             }
         }
 
-        LogUtil.d("super called action : " + e.getAction());
-        switch (mAViewState.CurrentScrollState) {
-            case SCROLL_STATE_DRAGGING_IN_CONTENT:
-            case SCROLL_STATE_SETTLING_IN_CONTENT:
-            case SCROLL_STATE_IDLE: {
-                return super.onTouchEvent(e);
-            }
-            case SCROLL_STATE_OVER_FLING_FOOTER:
-            case SCROLL_STATE_OVER_FLING_HEADER:
-            case SCROLL_STATE_OVER_SCROLL_FOOTER:
-            case SCROLL_STATE_OVER_SCROLL_HEADER: {
-                return false;
-            }
-        }
-
-        return false;
+        return super.onTouchEvent(e);
     }
 
     @Override
     public void setInTouching(boolean inTouching) {
+        if (isInTouching == inTouching) {
+            return;
+        }
+        LogUtil.d("ARecyclerView inTouching : " + inTouching);
+
         isInTouching = inTouching;
         if (isInTouching) {
             mPullToRefreshContainer.setInTouching(false);
         }
+    }
+
+    @Override
+    public boolean aViewDispatchTouch(MotionEvent e) {
+        dispatchTouchEvent(e);
+        return false;
     }
 
     @Override
@@ -234,10 +245,13 @@ public class ARecyclerView extends RecyclerView implements IAView {
     @Override
     public void setViewTranslationY(float translationY) {
         //LogUtil.d("currentTranslation Y : " + translationY + " lastTranslation Y : " + getTranslationY());
+        //LogUtil.d("TranslationY : " + translationY);
         int transY = -100;
         if (translationY > 0f && getTranslationY() < 0f) {
             transY = 0;
         } else if (translationY < 0f && getTranslationY() > 0f) {
+            transY = 0;
+        } else if (Float.isNaN(translationY)) {
             transY = 0;
         } else {
             transY = (int) translationY;
@@ -245,16 +259,27 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
         if (transY == 0) {
             setTranslationY(transY);
+            mAnimatorController.cancelAllAnim();
             mAViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_IDLE);
-            setInTouching(true);
+            //Todo my code worked but i don't know why.
+            if (mAViewState.LastScrollState == SCROLL_STATE_OVER_SCROLL_FOOTER) {
+                dispatchTouchEvent(Util.fakeAMotionEventForOverScrollFooter(mAViewState.lastMotionEvent));
+            } else if (mAViewState.LastScrollState == SCROLL_STATE_OVER_SCROLL_HEADER) {
+                dispatchTouchEvent(Util.fakeAMotionEventForOverScrollHeader(mAViewState.lastMotionEvent));
+            }
         } else {
             setTranslationY(transY);
         }
     }
 
     @Override
-    public float getViewTranslationY() {
-        return getTranslationY();
+    public int getViewTranslationY() {
+        return (int) getTranslationY();
+    }
+
+    @Override
+    public int getViewHeight() {
+        return getHeight();
     }
 
 }
