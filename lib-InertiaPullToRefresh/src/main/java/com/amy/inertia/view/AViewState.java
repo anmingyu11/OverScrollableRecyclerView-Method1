@@ -1,6 +1,8 @@
 package com.amy.inertia.view;
 
+import android.content.Context;
 import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 
 import com.amy.inertia.interfaces.IAView;
 import com.amy.inertia.interfaces.OnScrollDetectorListener;
@@ -15,38 +17,83 @@ public final class AViewState {
 
     private IAView mIAView;
 
-    AViewState(IAView iaView) {
+    AViewState(IAView iaView, Context context) {
         mIAView = iaView;
+        TouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        LogUtil.d("touchSlop : " + TouchSlop);
     }
 
-    MotionEvent lastMotionEvent = null;
+    int CurrentIndexOffsetYArray = 0;
+    private int[] mYOffsets = new int[2];
+
+    void storeYOffset(int offsetY) {
+        if (CurrentIndexOffsetYArray > 1) {
+            CurrentIndexOffsetYArray = 0;
+        }
+
+        VYArray[CurrentIndexOffsetYArray++] = offsetY;
+    }
+
+    private int getOffsetY() {
+        return mYOffsets[1] - mYOffsets[0];
+    }
+
+    int pointerId;
 
     //Touch params
-    float touchLastX;
-    float touchLastY;
-    float touchDX;
-    float touchDY;
+    int touchLastX;
+    int touchLastY;
+    int touchDX;
+    int touchDY;
+
+    int TouchSlop;
 
     void resetTouch() {
-        touchLastX = 0f;
-        touchLastY = 0f;
-        touchDX = 0f;
-        touchDY = 0f;
+        touchLastX = (int) 0f;
+        touchLastY = (int) 0f;
+        touchDX = (int) 0f;
+        touchDY = (int) 0f;
     }
 
     void setTouchLastXY(MotionEvent e) {
-        touchLastX = e.getRawX();
-        touchLastY = e.getRawY();
-        lastMotionEvent = e;
-        //LogUtil.i("LastY : " + touchLastY);
+        touchLastX = (int) (e.getX() + 0.5f);
+        touchLastY = (int) (e.getY() + 0.5f);
+    }
+
+    void setTouchLastXY(MotionEvent e, int pointerId) {
+        this.pointerId = pointerId;
+        touchLastX = (int) (e.getX(pointerId) + 0.5f);
+        touchLastY = (int) (e.getY(pointerId) + 0.5f);
     }
 
     void setTouchDXY(MotionEvent e) {
-        float X = e.getRawX();
-        float Y = e.getRawY();
-        touchDX = X - touchLastX;
-        touchDY = Y - touchLastY;
-        setTouchLastXY(e);
+        float X = e.getX();
+        float Y = e.getY();
+        touchDX = (int) (X - touchLastX);
+        touchDY = (int) (Y - touchLastY);
+        setTouchLastXY(X, Y);
+        LogUtil.d("DY : " + touchDY);
+    }
+
+    void setTouchLastXY(float X, float Y) {
+        touchLastX = (int) (X + 0.5f);
+        touchLastY = (int) (Y + 0.5f);
+    }
+
+    void setTouchDXY(float X, float Y) {
+        touchDX = (int) (X - touchLastX);
+        touchDY = (int) (Y - touchLastY);
+        setTouchLastXY(X, Y);
+        LogUtil.d("DY : " + touchDY);
+    }
+
+    void setTouchDXY(MotionEvent e, int pointerId) {
+        float X = e.getX(pointerId);
+        float Y = e.getY(pointerId);
+        touchDX = (int) (X - touchLastX);
+        touchDY = (int) (Y - touchLastY) + getOffsetY();
+        setTouchLastXY(e, pointerId);
+        LogUtil.d("DY : " + touchDY);
     }
 
     // DY array use this to store scroll velocity.
@@ -100,10 +147,7 @@ public final class AViewState {
         CurrentScrollState = newState;
     }
 
-    void notifyScrollStateChanged(int newState) {
-/*        if (newState == SCROLL_STATE_IDLE) {
-            LogUtil.printTraceStack("state idle changed.");
-        }*/
+    boolean notifyScrollStateChanged(int newState) {
         if (CurrentScrollState != newState) {
             setScrollState(newState);
             LogUtil.e("----------------");
@@ -113,10 +157,13 @@ public final class AViewState {
             for (OnScrollDetectorListener onScrollDetectorListener : mOnScrollDetectorListeners) {
                 onScrollDetectorListener.onScrollStateChanged(newState);
             }
+            return true;
+        } else {
+            return false;
         }
     }
 
-    public void addScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
+    void addScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
         if (mOnScrollDetectorListeners.contains(onScrollDetectorListener)) {
             String msg = "onScrollDetectorListener has contained.";
             LogUtil.e(msg);
@@ -131,11 +178,11 @@ public final class AViewState {
         }
     }
 
-    public void clearScrollDetectorListener() {
+    void clearScrollDetectorListener() {
         mOnScrollDetectorListeners.clear();
     }
 
-    public void removeScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
+    void removeScrollDetectorListener(OnScrollDetectorListener onScrollDetectorListener) {
         if (!mOnScrollDetectorListeners.contains(onScrollDetectorListener)) {
             String msg = "onScrollDetectorListener not contained.";
             LogUtil.e(msg);

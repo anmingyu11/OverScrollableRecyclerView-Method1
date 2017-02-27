@@ -4,6 +4,9 @@ public interface IPullToRefreshContainer {
 
     void attachToAView(IAView iaView);
 
-    void setInTouching(boolean inTouching);
+    void animScrollBack(float start);
 
+    void animScrollTo();
+
+    void animOverFling();
 }

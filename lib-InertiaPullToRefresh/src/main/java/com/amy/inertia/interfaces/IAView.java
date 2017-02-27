@@ -1,18 +1,10 @@
 package com.amy.inertia.interfaces;
 
-import android.view.MotionEvent;
-
 import com.amy.inertia.view.AViewState;
 
 public interface IAView {
 
     AViewState getAViewState();
-
-    IPullToRefreshContainer getContainer();
-
-    void setInTouching(boolean inTouching);
-
-    boolean aViewDispatchTouch(MotionEvent e);
 
     /**
      * Attach to inertia pull to refresh view.
@@ -20,13 +12,6 @@ public interface IAView {
      * @param iPullToRefresh
      */
     void attachToParent(IPullToRefreshContainer iPullToRefresh);
-
-    /**
-     * Attach to animation controller this AnimationController is in InertiaPullToRefreshLayout.
-     *
-     * @param iAnimatorController
-     */
-    void attachToAnimatorController(IAnimatorController iAnimatorController);
 
     /**
      * Add a Scroll Detector listener.
@@ -55,5 +40,4 @@ public interface IAView {
      */
     int getViewTranslationY();
 
-    int getViewHeight();
 }

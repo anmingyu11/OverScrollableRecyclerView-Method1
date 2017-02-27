@@ -18,6 +18,9 @@ public class _MainActivity extends AppCompatActivity {
         setContentView(R.layout._main_layout);
         LogUtil.setTAG("AMY");
         LogUtil.enableDebug(true);
+
+        onClickRecyclerView(null);
+        finish();
     }
 
     public void onClickScrollView(View view) {

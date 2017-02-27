@@ -69,4 +69,24 @@ public class Util {
         return MotionEvent.obtain(e);
     }
 
+    public static void printTouchInfo(MotionEvent e, float transY) {
+        LogUtil.i("Y : " + e.getY() + transY);
+        LogUtil.i("RawY : " + e.getRawY());
+    }
+
+    public static void printTouchInfo(MotionEvent e) {
+        LogUtil.i("Y : " + e.getY());
+        LogUtil.i("RawY : " + e.getRawY());
+    }
+
+    public static void printTouchInfo(float y, float rawY, float translatioY) {
+        LogUtil.i("Y : " + y);
+        LogUtil.i("translationY : " + translatioY);
+        //LogUtil.i("rawY : " + rawY);
+        //float y_rawY = y - rawY;
+        //LogUtil.i("y - rawY : " + y_rawY);
+        //float Y = y + y - rawY;
+        //LogUtil.i("realY : " + Y);
+    }
+
 }

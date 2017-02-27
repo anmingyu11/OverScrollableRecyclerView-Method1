@@ -6,29 +6,20 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.amy.inertia.interfaces.IAView;
-import com.amy.inertia.interfaces.IAnimatorController;
 import com.amy.inertia.interfaces.IFooterView;
 import com.amy.inertia.interfaces.IHeaderView;
 import com.amy.inertia.interfaces.IPullToRefreshContainer;
 import com.amy.inertia.interfaces.IPullToRefreshListener;
-import com.amy.inertia.interfaces.OnScrollDetectorListener;
-import com.amy.inertia.util.LogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.amy.inertia.util.LogUtil.d;
 import static com.amy.inertia.util.LogUtil.e;
-import static com.amy.inertia.view.AViewState.SCROLL_STATE_IDLE;
-import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_FOOTER;
-import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_HEADER;
-import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_SCROLL_FOOTER;
-import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_SCROLL_HEADER;
 
 
 public class PullToRefreshContainer extends FrameLayout implements IPullToRefreshContainer {
@@ -93,9 +84,6 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
      * Default is 1/4 size of your childView Height, also back to this height.
      */
     private float mFooterTriggerRefreshHeight = 500;
-
-    //Animator
-    private IAnimatorController mAnimatorController = null;
 
     //PullListeners
     private final List<IPullToRefreshListener> mPullToRefreshListeners = new ArrayList<>();
@@ -186,92 +174,11 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         }
 
         if (mAView != null) {
-            mAnimatorController = new AnimatorController(mAView);
 
-            mAView.attachToAnimatorController(mAnimatorController);
             mAView.attachToParent(this);
 
-            initChildScrollDetector();
         } else {
             throw new NullPointerException("ChildView cannot be null.");
-        }
-    }
-
-    private void handleAViewState(int newState) {
-        AViewState aViewState = mAView.getAViewState();
-
-        switch (newState) {
-            case SCROLL_STATE_IDLE: {
-                mAView.setInTouching(true);
-                break;
-            }
-            case AViewState.SCROLL_STATE_DRAGGING_IN_CONTENT: {
-                mAView.setInTouching(true);
-                break;
-            }
-            case AViewState.SCROLL_STATE_SETTLING_IN_CONTENT: {
-                mAView.setInTouching(true);
-                break;
-            }
-            case SCROLL_STATE_OVER_SCROLL_HEADER: {
-                setInTouching(true);
-                break;
-            }
-            case SCROLL_STATE_OVER_SCROLL_FOOTER: {
-                setInTouching(true);
-                break;
-            }
-            case SCROLL_STATE_OVER_FLING_HEADER: {
-                setInTouching(true);
-                d("Over fling header VY : " + aViewState.getVy());
-                break;
-            }
-            case SCROLL_STATE_OVER_FLING_FOOTER: {
-                setInTouching(true);
-                d("Over fling footer VY : " + aViewState.getVy());
-                break;
-            }
-        }
-    }
-
-    private void initChildScrollDetector() {
-        mAView.addScrollDetectorListener(new OnScrollDetectorListener() {
-
-            @Override
-            public void onScrollStateChanged(int newState) {
-                handleAViewState(newState);
-            }
-
-            @Override
-            public void onNotFullVisible() {
-
-            }
-
-            @Override
-            public void onFullVisible() {
-
-            }
-
-        });
-    }
-
-    private void processChildViewTouchEvent(MotionEvent event) {
-        int action = event.getAction();
-        switch (action) {
-            case MotionEvent.ACTION_DOWN: {
-                d("Child View Action Down");
-                mAnimatorController.pauseAllAnim();
-                return;
-            }
-            case MotionEvent.ACTION_UP: {
-                d("Child View Action Up");
-                mAnimatorController.resumeAllAnim();
-                return;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                d("Child View Action Move");
-                return;
-            }
         }
     }
 
@@ -291,95 +198,10 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         addView(mFooterContainer, 0);
     }
 
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        boolean result;
-        if (isInTouching) {
-            result = onTouchEvent(ev);
-        } else {
-            if (ev.getActionMasked() == MotionEvent.ACTION_MOVE) {
-                result = mAView.aViewDispatchTouch(ev);
-            } else {
-                result = super.dispatchTouchEvent(ev);
-            }
-        }
-
-        //LogUtil.e("TouchingTest Container dispatching inTouching : " + isInTouching + " result : " + result);
-        //LogUtil.w("TouchingTest Container dispatching : y : " + ev.getY() + " action : " + ev.getActionMasked());
-
-        return result;
+    public void handleHeaderRefresh() {
     }
 
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        boolean result;
-
-        if (isInTouching) {
-            result = true;
-        } else {
-            result = false;
-        }
-
-        //e("TouchingTest Container intercepting inTouching : " + isInTouching + " result : " + result);
-        return result;
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent e) {
-        boolean result;
-        result = onHandleTouchEvent(e);
-        //e("TouchingTest Container onTouching inTouching : " + isInTouching + " result : " + result);
-        return result;
-    }
-
-    private void handleHeaderRefresh() {
-  /*      float translationY = mChildView.getTranslationY();
-        int duration =
-                Math.min(
-                        mAnimatorController.mScrollToAnimMaxDuration,
-                        Math.max(mAnimatorController.mScrollToAnimMinDuration,
-                                (int) (Math.abs(translationY) - mHeaderTriggerRefreshHeight)));
-        animChildViewScrollTo(translationY, mHeaderTriggerRefreshHeight, duration);
-        mAnimatorController.getAnimator(ANIM_SCROLL_TO).addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                isHeaderRefreshing = true;
-                for (IPullListener iPullListener : mPullToRefreshListeners.values()) {
-                    iPullListener.onHeaderRefresh(PullToRefreshContainer.this);
-                }
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                super.onAnimationCancel(animation);
-                isHeaderRefreshing = false;
-                animChildViewScrollBack();
-            }
-        });*/
-    }
-
-    private void handleFooterRefresh() {
-    /*    float translationY = mChildView.getTranslationY();
-        int duration = (int) (Math.abs(translationY) - mFooterTriggerRefreshHeight);
-        animChildViewScrollTo(translationY, mFooterTriggerRefreshHeight, duration);
-        mAnimatorController.getAnimator(ANIM_SCROLL_TO).addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                isHeaderRefreshing = true;
-                for (IPullListener iPullListener : mPullToRefreshListeners.values()) {
-                    iPullListener.onFooterRefresh(PullToRefreshContainer.this);
-                }
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                super.onAnimationCancel(animation);
-                isFooterRefreshing = false;
-                animChildViewScrollBack();
-            }
-        });*/
+    public void handleFooterRefresh() {
     }
 
     @Override
@@ -387,69 +209,8 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         mAView = iaView;
     }
 
-    public void setInTouching(boolean inTouching) {
-        if (isInTouching == inTouching) {
-            return;
-        }
-        LogUtil.d("Container inTouching : " + inTouching);
-
-        isInTouching = inTouching;
-        if (isInTouching) {
-            mAView.setInTouching(false);
-        }
-    }
-
-    private boolean onHandleTouchEvent(MotionEvent e) {
-        AViewState aViewState = mAView.getAViewState();
-        switch (e.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN: {
-
-                mAnimatorController.pauseAllAnim();
-
-                aViewState.setTouchLastXY(e);
-                break;
-            }
-            case MotionEvent.ACTION_POINTER_DOWN: {
-                aViewState.setTouchLastXY(e);
-                break;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                aViewState.setTouchDXY(e);
-
-                int dY = (int) aViewState.touchDY;
-                int transY = Math.abs(mAView.getViewTranslationY());
-
-                //LogUtil.d("TranslationY : " + transY + " height : " + mAView.getViewHeight());
-
-                if (transY < mAView.getViewHeight() * 0.5f) {
-                    dY *= mPullDamp;
-                } else if (transY > mAView.getViewHeight() * 0.5f && transY < mAView.getViewHeight() * 0.8f) {
-                    dY *= mPullDamp * mPullDamp;
-                } else {
-                    dY *= mPullDamp * mPullDamp * mPullDamp;
-                }
-
-                mAView.setViewTranslationY(mAView.getViewTranslationY() + dY);
-                break;
-            }
-            case MotionEvent.ACTION_POINTER_UP: {
-                int indexOfUpPointer = e.getActionIndex();
-                if (indexOfUpPointer == 0) {
-                    aViewState.setTouchLastXY(e);
-                }
-                break;
-            }
-            case MotionEvent.ACTION_UP: {
-                aViewState.resetTouch();
-                mAnimatorController.cancelAllAnim();
-                animScrollBack(mAView.getViewTranslationY());
-                break;
-            }
-        }
-        return isInTouching;
-    }
-
-    private void animScrollBack(float start) {
+    @Override
+    public void animScrollBack(float start) {
         //Todo: to handle if has other anim running.
 
         d("animChildViewScrollBack : " + "translationY : " + start);
@@ -481,13 +242,15 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
                 }
             }
         });
-        mAnimatorController.addAnimator(AnimatorBuilder.ANIM_SCROLL_BACK, scrollBack);
-        mAnimatorController.startAnimator(AnimatorBuilder.ANIM_SCROLL_BACK);
+        //mAnimatorController.addAnimator(AnimatorBuilder.ANIM_SCROLL_BACK, scrollBack);
+        // mAnimatorController.startAnimator(AnimatorBuilder.ANIM_SCROLL_BACK);
     }
 
-    private void animScrollTo() {
+    @Override
+    public void animScrollTo() {
     }
 
-    private void animOverFling() {
+    @Override
+    public void animOverFling() {
     }
 }
