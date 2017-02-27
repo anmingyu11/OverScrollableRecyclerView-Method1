@@ -39,6 +39,7 @@ public final class AViewState {
     }
 
     int pointerId;
+    int lastAction = -1;
 
     //Touch params
     int touchLastX;
@@ -56,8 +57,8 @@ public final class AViewState {
     }
 
     void setTouchLastXY(MotionEvent e) {
-        touchLastX = (int) (e.getX() + 0.5f);
-        touchLastY = (int) (e.getY() + 0.5f);
+        touchLastX = (int) (e.getRawX() + 0.5f);
+        touchLastY = (int) (e.getRawY() + 0.5f);
     }
 
     void setTouchLastXY(MotionEvent e, int pointerId) {
@@ -67,8 +68,8 @@ public final class AViewState {
     }
 
     void setTouchDXY(MotionEvent e) {
-        float X = e.getX();
-        float Y = e.getY();
+        float X = e.getRawX();
+        float Y = e.getRawY();
         touchDX = (int) (X - touchLastX);
         touchDY = (int) (Y - touchLastY);
         setTouchLastXY(X, Y);

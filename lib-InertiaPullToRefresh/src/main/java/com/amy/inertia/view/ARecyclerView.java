@@ -97,7 +97,9 @@ public class ARecyclerView extends RecyclerView implements IAView {
     @Override
     public boolean onTouchEvent(MotionEvent e) {
         final MotionEvent finalE = MotionEvent.obtain(e);
-        return handleTouchEvent(finalE);
+        boolean result = handleTouchEvent(finalE);
+        mAViewState.lastAction = MotionEventCompat.getActionMasked(finalE);
+        return result;
     }
 
     private boolean handleTouchEvent(MotionEvent e) {
@@ -160,7 +162,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
         //float X = e.getX(pointerId);//Todo in the future
         //float Y = e.getY(pointerId) + offsetY;
         //mAViewState.setTouchLastXY(X, Y);
-        mAViewState.setTouchDXY(e, pointerId);
+        mAViewState.setTouchDXY(e);
         return super.onTouchEvent(e);
     }
 
@@ -171,7 +173,13 @@ public class ARecyclerView extends RecyclerView implements IAView {
         boolean fingerScrollDown;
 
         //mAViewState.setTouchDXY(e.getRawX(), e.getRawY());
-        mAViewState.setTouchDXY(e);
+        if (mAViewState.lastAction == MotionEvent.ACTION_POINTER_UP) {
+            mAViewState.setTouchLastXY(e);
+            return true;
+        } else {
+            mAViewState.setTouchDXY(e);
+        }
+
         if (mAViewState.touchDY > 0) {
             fingerScrollDown = true;
             fingerScrollUp = false;
@@ -222,7 +230,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
         //mAViewState.setTouchLastXY(X, Y);
         int indexOfUpPointer = e.getActionIndex();
         if (indexOfUpPointer == 0) {
-            mAViewState.setTouchLastXY(e, 1);
+            mAViewState.setTouchLastXY(e);
         }
 
         return super.onTouchEvent(e);
