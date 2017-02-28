@@ -1,12 +1,14 @@
 package com.amy.inertia.interfaces;
 
+import android.animation.Animator;
+
 public interface IPullToRefreshContainer {
 
     void attachToAView(IAView iaView);
 
-    void animScrollBack(float start);
+    Animator buildScrollBackAnim(float start);
 
-    void animScrollTo();
+    Animator buildOverFlingAnim(float vY);
 
-    void animOverFling();
+    Animator buildScrollToAnim();
 }

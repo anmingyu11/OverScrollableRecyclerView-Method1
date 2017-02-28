@@ -1,12 +1,13 @@
 package com.amy.inertia.view;
 
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 
 import com.amy.inertia.interfaces.IAView;
@@ -14,12 +15,15 @@ import com.amy.inertia.interfaces.IFooterView;
 import com.amy.inertia.interfaces.IHeaderView;
 import com.amy.inertia.interfaces.IPullToRefreshContainer;
 import com.amy.inertia.interfaces.IPullToRefreshListener;
+import com.amy.inertia.util.LogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.amy.inertia.util.LogUtil.d;
 import static com.amy.inertia.util.LogUtil.e;
+import static com.amy.inertia.view.AnimatorBuilder.ANIM_OVER_FLING;
+import static com.amy.inertia.view.AnimatorBuilder.ANIM_SCROLL_BACK;
 
 
 public class PullToRefreshContainer extends FrameLayout implements IPullToRefreshContainer {
@@ -37,17 +41,10 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
     private IAView mAView;
 
-    private float mTouchX;
-    private float mTouchY;
-    private boolean isInTouching = false;
+    private boolean isEnableOverFling = true;
 
-    private boolean isEnableInertiaOverScroll = true;
-
-    private boolean isEnableInertiaHeaderOverScroll = true;
-    private boolean isEnableInertiaFooterOverScroll = true;
-
-    private boolean isEnableInertiaOverScrollHeaderShow = false;
-    private boolean isEnableInertiaOverScrollFooterShow = false;
+    private boolean isEnableOverFlingHeaderShow = false;
+    private boolean isEnableOverFlingFooterShow = false;
     private boolean isEnableHeaderPullOverScroll = true;
     private boolean isEnableFooterPullOverScroll = true;
 
@@ -61,10 +58,25 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     private boolean isHeaderRefreshing = false;
     private boolean isFooterRefreshing = false;
 
+    private int mMaxOverFlingVY = 300;
+
     /**
      * Bigger you pull harder.
      */
     private float mPullDamp = 0.3f;
+
+    //ScrollBack
+    private int mScrollBackAnimMinDuration = 600;
+    private int mScrollBackAnimMaxDuration = 1200;
+    private float mScrollBackAnimDamp = 7f / 10f;
+    private Interpolator mScrollBackAnimInterpolator = new DecelerateInterpolator();
+
+    //OverFling
+    private int mOverFlingAnimDuration = 100;
+    private float mOverScrollVyDamp = 0.13f;
+    private float mOverFlingVyMax = 2440 * 0.13f;
+    private Interpolator mOverFlingInterpolator = new LinearInterpolator();
+
     /**
      * Default is your childView Height
      */
@@ -136,12 +148,10 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
             @Override
             public void onPullHeaderReleasing(float fraction) {
-                mAView.setViewTranslationY(mAView.getViewTranslationY() * fraction);
             }
 
             @Override
             public void onPullFooterReleasing(float fraction) {
-                mAView.setViewTranslationY(mAView.getViewTranslationY() * fraction);
             }
 
             @Override
@@ -174,9 +184,7 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         }
 
         if (mAView != null) {
-
             mAView.attachToParent(this);
-
         } else {
             throw new NullPointerException("ChildView cannot be null.");
         }
@@ -210,47 +218,65 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     }
 
     @Override
-    public void animScrollBack(float start) {
-        //Todo: to handle if has other anim running.
-
-        d("animChildViewScrollBack : " + "translationY : " + start);
+    public Animator buildScrollBackAnim(float start) {
+        final String key = ANIM_SCROLL_BACK;
+        d(key + " : " + " start : " + start);
 
         if (start < 1f && start > -1f) {
-            e("anim no start.");
+            e(key + " cannot be built.");
             mAView.setViewTranslationY(0f);
-            return;
+            return null;
         }
 
-        int duration = (int) Math.abs(start);
+        int duration = Math.min(
+                mScrollBackAnimMaxDuration,
+                Math.max(Math.abs((int) (start * mScrollBackAnimDamp)),
+                        mScrollBackAnimMinDuration)
+        );
 
-        ValueAnimator scrollBack =
+        LogUtil.d("duration : " + duration);
+
+        Animator scrollBack =
                 mAnimatorBuilder.buildScrollBackAnimator(mPullToRefreshListeners,
+                        mAView,
                         start,
                         duration,
+                        mScrollBackAnimInterpolator);
+
+        return scrollBack;
+    }
+
+    @Override
+    public Animator buildOverFlingAnim(float vY) {
+        final String key = ANIM_OVER_FLING;
+
+        if (vY < 1f && vY > -1f) {
+            e(key + " cannot be built.");
+            mAView.setViewTranslationY(0f);
+            return null;
+        }
+
+        if (vY > 0 && mMaxOverFlingVY < 0) {
+            mMaxOverFlingVY = -mMaxOverFlingVY;
+        } else if (vY < 0 && mMaxOverFlingVY > 0) {
+            mMaxOverFlingVY = -mMaxOverFlingVY;
+        }
+
+        final float finalVy = Math.abs(vY) < Math.abs(mMaxOverFlingVY) ? vY : mMaxOverFlingVY;
+        d(key + " finalVY : " + finalVy);
+
+        Animator overFling =
+                mAnimatorBuilder.buildOverFlingAnimator(mAView,
+                        finalVy,
+                        mOverFlingAnimDuration,
                         null);
-        scrollBack.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                AViewState aViewState = mAView.getAViewState();
-                if (mAView.getViewTranslationY() > 0) {
-                    aViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_OVER_SCROLL_FOOTER);
-                } else if (mAView.getViewTranslationY() < 0) {
-                    aViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_OVER_SCROLL_HEADER);
-                } else {
-                    aViewState.notifyScrollStateChanged(AViewState.SCROLL_STATE_IDLE);
-                }
-            }
-        });
-        //mAnimatorController.addAnimator(AnimatorBuilder.ANIM_SCROLL_BACK, scrollBack);
-        // mAnimatorController.startAnimator(AnimatorBuilder.ANIM_SCROLL_BACK);
+
+        return overFling;
     }
 
     @Override
-    public void animScrollTo() {
+    public Animator buildScrollToAnim() {
+        return null;
     }
 
-    @Override
-    public void animOverFling() {
-    }
 }

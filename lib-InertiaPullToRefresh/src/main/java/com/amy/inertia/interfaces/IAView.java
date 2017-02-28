@@ -31,7 +31,7 @@ public interface IAView {
      *
      * @param translationY
      */
-    void setViewTranslationY(float translationY);
+    int setViewTranslationY(float translationY);
 
     /**
      * Encapsulate the view.getTranslationY();

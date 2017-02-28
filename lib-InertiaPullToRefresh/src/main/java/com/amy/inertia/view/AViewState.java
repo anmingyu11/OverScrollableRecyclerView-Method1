@@ -40,6 +40,8 @@ public final class AViewState {
 
     int pointerId;
     int lastAction = -1;
+    MotionEvent currentMotionEvent;
+    MotionEvent lastMotionEvent;
 
     //Touch params
     int touchLastX;
@@ -151,6 +153,7 @@ public final class AViewState {
     boolean notifyScrollStateChanged(int newState) {
         if (CurrentScrollState != newState) {
             setScrollState(newState);
+            LogUtil.printTraceStack("where");
             LogUtil.e("----------------");
             LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
             LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);

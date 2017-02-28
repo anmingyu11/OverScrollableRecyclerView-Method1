@@ -61,6 +61,10 @@ public class Util {
         return dm.heightPixels;
     }
 
+    public static MotionEvent fakeAUpMotionEvent(MotionEvent e) {
+        return MotionEvent.obtain(e.getDownTime(), e.getEventTime(), MotionEvent.ACTION_UP, e.getX(), e.getY(), e.getMetaState());
+    }
+
     public static MotionEvent fakeAMotionEventForOverScrollFooter(MotionEvent e) {
         return MotionEvent.obtain(e.getDownTime(), e.getEventTime(), MotionEvent.ACTION_DOWN, e.getX(), e.getY(), e.getMetaState());
     }

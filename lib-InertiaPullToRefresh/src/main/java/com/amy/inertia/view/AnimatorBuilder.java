@@ -1,11 +1,14 @@
 package com.amy.inertia.view;
 
+import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
+import com.amy.inertia.interfaces.IAView;
 import com.amy.inertia.interfaces.IPullToRefreshListener;
+import com.amy.inertia.util.LogUtil;
 
 import java.util.List;
 
@@ -42,10 +45,47 @@ final class AnimatorBuilder {
     private AnimatorBuilder() {
     }
 
-    ValueAnimator buildScrollBackAnimator(final List<IPullToRefreshListener> iPullToRefreshListeners,
-                                          final float start,
-                                          int duration,
-                                          Interpolator interpolator) {
+    /*
+
+     public Animator buildScrollToAnimator(final float start, final float to, int duration) {
+         int realDuration = Math.min(
+                 Math.max(mScrollToAnimMinDuration, duration),
+                 mScrollToAnimMaxDuration
+         );
+
+         scrollToAnimator = ObjectAnimator.ofFloat(mAView, "viewTranslationY", start, to);
+         scrollToAnimator.setDuration(realDuration);
+         scrollToAnimator.setInterpolator(mScrollToInterpolator);
+         scrollToAnimator.addListener(new AnimatorListenerAdapter() {
+
+             @Override
+             public void onAnimationStart(Animator animation) {
+                 super.onAnimationStart(animation);
+                 mAView.setViewTranslationY(start);
+             }
+
+             @Override
+             public void onAnimationCancel(Animator animation) {
+                 super.onAnimationCancel(animation);
+                 float translationY = mAView.getViewTranslationY();
+                 boolean isPaused = animation.isPaused();
+                 LogUtil.d(ANIM_SCROLL_TO + " onAnimationCancel " + " isPaused: " + isPaused + " translationY : " + translationY);
+                 //if (!isPaused) {
+                 mAView.setViewTranslationY(to);
+                 //}
+             }
+         });
+         addAnimator(ANIM_SCROLL_TO, scrollToAnimator);
+         return scrollToAnimator;
+     }
+
+     */
+
+    Animator buildScrollBackAnimator(final List<IPullToRefreshListener> iPullToRefreshListeners,
+                                     final IAView iaView,
+                                     final float start,
+                                     int duration,
+                                     Interpolator interpolator) {
 
         //Todo : check if start =0.0f.
         ValueAnimator scrollBackAnimator = null;
@@ -62,6 +102,9 @@ final class AnimatorBuilder {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float value = (float) animation.getAnimatedValue();
+
+                iaView.setViewTranslationY(value);
+
                 float fraction = value / start;
                 //LogUtil.d("fraction : " + value / start);
                 if (start < 0f) {
@@ -81,97 +124,30 @@ final class AnimatorBuilder {
         return scrollBackAnimator;
     }
 
-    /*
 
-    public Animator buildScrollToAnimator(final float start, final float to, int duration) {
-        int realDuration = Math.min(
-                Math.max(mScrollToAnimMinDuration, duration),
-                mScrollToAnimMaxDuration
-        );
-
-        scrollToAnimator = ObjectAnimator.ofFloat(mAView, "viewTranslationY", start, to);
-        scrollToAnimator.setDuration(realDuration);
-        scrollToAnimator.setInterpolator(mScrollToInterpolator);
-        scrollToAnimator.addListener(new AnimatorListenerAdapter() {
-
-            @Override
-            public void onAnimationStart(Animator animation) {
-                super.onAnimationStart(animation);
-                mAView.setViewTranslationY(start);
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                super.onAnimationCancel(animation);
-                float translationY = mAView.getViewTranslationY();
-                boolean isPaused = animation.isPaused();
-                LogUtil.d(ANIM_SCROLL_TO + " onAnimationCancel " + " isPaused: " + isPaused + " translationY : " + translationY);
-                //if (!isPaused) {
-                mAView.setViewTranslationY(to);
-                //}
-            }
-        });
-        addAnimator(ANIM_SCROLL_TO, scrollToAnimator);
-        return scrollToAnimator;
-    }
-
-    public Animator buildOverScrollAnimator(float vY) {
+    public Animator buildOverFlingAnimator(final IAView iaView,
+                                           final float vY,
+                                           int duration,
+                                           Interpolator interpolator) {
         LogUtil.d("over scroll animator start value : " + vY);
-        float dY = Math.min(vY, mInertiaOverScrollVyMax);
-        overScrollAnimator = ValueAnimator.ofFloat(dY, 0);
-        overScrollAnimator.setDuration(mInertiaOverScrollAnimDuration);
-        overScrollAnimator.setInterpolator(mOverScrollInterpolator);
+
+        ValueAnimator overScrollAnimator = null;
+
+        if (interpolator == null) {
+            interpolator = new LinearInterpolator();
+        }
+
+        overScrollAnimator = ValueAnimator.ofFloat(-vY, 0);
+        overScrollAnimator.setDuration(Math.abs(duration));
+        overScrollAnimator.setInterpolator(interpolator);
         overScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float value = (float) animation.getAnimatedValue();
-                mAView.setViewTranslationY(mAView.getViewTranslationY() + value);
+                iaView.setViewTranslationY(iaView.getViewTranslationY() + value);
             }
         });
-        overScrollAnimator.addListener(new AnimatorListenerAdapter() {
-            boolean isCancel = false;
 
-            @Override
-            public void onAnimationStart(Animator animation) {
-                super.onAnimationStart(animation);
-                mAView.setViewTranslationY(0f);
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                if (isCancel) {
-                    isCancel = false;
-                    return;
-                }
-                cancelAnim(ANIM_SCROLL_TO);
-                cancelAnim(ANIM_SCROLL_BACK);
-                float translationY = mAView.getViewTranslationY();
-                int duration = Math.min(
-                        Math.max((int) translationY, mScrollBackAnimMinDuration),
-                        mScrollBackAnimMaxDuration);
-                buildScrollBackAnimator(translationY, duration);
-                scrollBackAnimator.start();
-                isCancel = false;
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                super.onAnimationCancel(animation);
-                float translationY = mAView.getViewTranslationY();
-                boolean isPaused = animation.isPaused();
-                LogUtil.d(ANIM_OVER_SCROLL + " onAnimationCancel " + " isPaused: " + isPaused + " translationY : " + translationY);
-                //if (!isPaused) {
-                mAView.setViewTranslationY(0);
-                //}
-                isCancel = true;
-            }
-
-        });
-
-        addAnimator(ANIM_OVER_SCROLL, overScrollAnimator);
         return overScrollAnimator;
     }
-
-    */
 }
