@@ -27,6 +27,16 @@ final class AnimatorController implements IAnimatorController {
     }
 
     @Override
+    public boolean hasAnimatorCurrentlyRunning() {
+        for (String name : mAnimators.keySet()) {
+            if (isAnimatorCurrentlyRunning(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean isAnimatorCurrentlyRunning(String key) {
         Animator animator = getAnimator(key);
         return isAnimatorCurrentlyRunning(animator);

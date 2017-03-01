@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.amy.inertia.util.LogUtil;
 import com.amy.inertiapulltorefreshview.R;
 
 import java.util.ArrayList;
@@ -102,6 +103,12 @@ public class RecyclerViewActivity extends AppCompatActivity {
         public MyViewHolder(View itemView) {
             super(itemView);
             mTextView = (TextView) itemView.findViewById(R.id.tv);
+            mTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LogUtil.d("onCLick");
+                }
+            });
         }
     }
 }

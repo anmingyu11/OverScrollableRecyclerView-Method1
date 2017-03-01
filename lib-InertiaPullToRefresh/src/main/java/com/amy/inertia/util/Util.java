@@ -7,6 +7,7 @@ import android.view.WindowManager;
 
 public class Util {
 
+
     public static int getMax(int[] arr) {
         int max = arr[0];
         for (int i = 0; i < arr.length; i++) {
@@ -65,12 +66,8 @@ public class Util {
         return MotionEvent.obtain(e.getDownTime(), e.getEventTime(), MotionEvent.ACTION_UP, e.getX(), e.getY(), e.getMetaState());
     }
 
-    public static MotionEvent fakeAMotionEventForOverScrollFooter(MotionEvent e) {
+    public static MotionEvent fakeADownMotionEvent(MotionEvent e) {
         return MotionEvent.obtain(e.getDownTime(), e.getEventTime(), MotionEvent.ACTION_DOWN, e.getX(), e.getY(), e.getMetaState());
-    }
-
-    public static MotionEvent fakeAMotionEventForOverScrollHeader(MotionEvent e) {
-        return MotionEvent.obtain(e);
     }
 
     public static void printTouchInfo(MotionEvent e, float transY) {

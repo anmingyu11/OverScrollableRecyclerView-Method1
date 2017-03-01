@@ -6,6 +6,8 @@ public interface IAnimatorController {
 
     void attachAView(IAView iAview);
 
+    boolean hasAnimatorCurrentlyRunning();
+
     boolean isAnimatorCurrentlyRunning(String name);
 
     boolean isAnimatorCurrentlyPaused(String name);

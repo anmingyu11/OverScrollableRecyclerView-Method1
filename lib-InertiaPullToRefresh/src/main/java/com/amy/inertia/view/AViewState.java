@@ -9,39 +9,66 @@ import com.amy.inertia.interfaces.OnScrollDetectorListener;
 import com.amy.inertia.util.LogUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public final class AViewState {
+
+    public final static int SCALED_MAX_FLING_V;
+
+    public final static int SCALED_MIN_FLING_V;
+
+    static {
+        SCALED_MAX_FLING_V = ViewConfiguration.getMaximumFlingVelocity();
+        SCALED_MIN_FLING_V = ViewConfiguration.getMinimumFlingVelocity();
+        //LogUtil.d("scaled fling v : " + " max: " + SCALED_MAX_FLING_V + " min : " + SCALED_MIN_FLING_V);
+    }
 
     private final List<OnScrollDetectorListener<ARecyclerView>> mOnScrollDetectorListeners = new ArrayList<OnScrollDetectorListener<ARecyclerView>>();
 
     private IAView mIAView;
 
+    //final VelocityTracker VelocityTracker = android.view.VelocityTracker.obtain();
+
     AViewState(IAView iaView, Context context) {
         mIAView = iaView;
         TouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-        LogUtil.d("touchSlop : " + TouchSlop);
-    }
-
-    int CurrentIndexOffsetYArray = 0;
-    private int[] mYOffsets = new int[2];
-
-    void storeYOffset(int offsetY) {
-        if (CurrentIndexOffsetYArray > 1) {
-            CurrentIndexOffsetYArray = 0;
-        }
-
-        VYArray[CurrentIndexOffsetYArray++] = offsetY;
-    }
-
-    private int getOffsetY() {
-        return mYOffsets[1] - mYOffsets[0];
+        //LogUtil.d("touchSlop : " + TouchSlop);
     }
 
     int pointerId;
-    int lastAction = -1;
-    MotionEvent currentMotionEvent;
-    MotionEvent lastMotionEvent;
+
+    private final static int EVENT_BUFFER_SIZE = 3;
+    final Queue<MotionEvent> MotionEvents = new LinkedList<MotionEvent>();
+    private MotionEvent lastMotionEvent;
+
+    void storeMotionEvent(MotionEvent e) {
+        //LogUtil.d("sto : " + MotionEvents.size());
+        if (MotionEvents.size() == 3) {
+            MotionEvents.poll();
+            MotionEvents.offer(e);
+        } else {
+            MotionEvents.offer(e);
+        }
+        lastMotionEvent = e;
+    }
+
+    MotionEvent[] getMotionEvents() {
+        MotionEvent[] motionEvents = new MotionEvent[3];
+        for (int i = 0; i < EVENT_BUFFER_SIZE; i++) {
+            motionEvents[i] = MotionEvents.peek();
+            //LogUtil.i(" " + i + " : " + motionEvents[i].getActionMasked());
+        }
+        return motionEvents;
+    }
+
+    int getLastAction() {
+        if (lastMotionEvent == null) {
+            return -1;
+        }
+        return lastMotionEvent.getActionMasked();
+    }
 
     //Touch params
     int touchLastX;
@@ -75,7 +102,7 @@ public final class AViewState {
         touchDX = (int) (X - touchLastX);
         touchDY = (int) (Y - touchLastY);
         setTouchLastXY(X, Y);
-        LogUtil.d("DY : " + touchDY);
+        //LogUtil.d("DY : " + touchDY);
     }
 
     void setTouchLastXY(float X, float Y) {
@@ -94,15 +121,15 @@ public final class AViewState {
         float X = e.getX(pointerId);
         float Y = e.getY(pointerId);
         touchDX = (int) (X - touchLastX);
-        touchDY = (int) (Y - touchLastY) + getOffsetY();
+        touchDY = (int) (Y - touchLastY);
         setTouchLastXY(e, pointerId);
         LogUtil.d("DY : " + touchDY);
     }
 
     // DY array use this to store scroll velocity.
     final int[] VYArray = new int[VY_SIZE];
-    static final int VY_SIZE = 2;
-    int CurrentIndexOfVyArray = 0;
+    private static final int VY_SIZE = 2;
+    private int CurrentIndexOfVyArray = 0;
 
     void storeVy(int vY) {
         if (CurrentIndexOfVyArray > 1) {
@@ -153,7 +180,7 @@ public final class AViewState {
     boolean notifyScrollStateChanged(int newState) {
         if (CurrentScrollState != newState) {
             setScrollState(newState);
-            LogUtil.printTraceStack("where");
+            //LogUtil.printTraceStack("where");
             LogUtil.e("----------------");
             LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
             LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);
