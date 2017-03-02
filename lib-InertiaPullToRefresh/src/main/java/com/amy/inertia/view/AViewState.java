@@ -114,7 +114,7 @@ public final class AViewState {
         touchDX = (int) (X - touchLastX);
         touchDY = (int) (Y - touchLastY);
         setTouchLastXY(X, Y);
-        LogUtil.d("DY : " + touchDY);
+        //LogUtil.d("DY : " + touchDY);
     }
 
     void setTouchDXY(MotionEvent e, int pointerId) {
@@ -123,7 +123,7 @@ public final class AViewState {
         touchDX = (int) (X - touchLastX);
         touchDY = (int) (Y - touchLastY);
         setTouchLastXY(e, pointerId);
-        LogUtil.d("DY : " + touchDY);
+        //LogUtil.d("DY : " + touchDY);
     }
 
     // DY array use this to store scroll velocity.
@@ -181,10 +181,10 @@ public final class AViewState {
         if (CurrentScrollState != newState) {
             setScrollState(newState);
             //LogUtil.printTraceStack("where");
-            LogUtil.e("----------------");
-            LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
-            LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);
-            LogUtil.e("----------------");
+            //LogUtil.e("----------------");
+            //LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
+            //LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);
+            //LogUtil.e("----------------");
             for (OnScrollDetectorListener onScrollDetectorListener : mOnScrollDetectorListeners) {
                 onScrollDetectorListener.onScrollStateChanged(newState);
             }
@@ -205,7 +205,7 @@ public final class AViewState {
             }
         } else {
             mOnScrollDetectorListeners.add(onScrollDetectorListener);
-            LogUtil.v("add onScrollDetectorListener success.");
+            //LogUtil.v("add onScrollDetectorListener success.");
         }
     }
 
@@ -224,7 +224,7 @@ public final class AViewState {
             }
         } else {
             mOnScrollDetectorListeners.remove(onScrollDetectorListener);
-            LogUtil.d("remove onScrollDetectorListener success.");
+            //LogUtil.d("remove onScrollDetectorListener success.");
         }
     }
 

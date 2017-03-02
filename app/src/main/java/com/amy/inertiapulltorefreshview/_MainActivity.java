@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import com.amy.inertia.util.LogUtil;
 import com.amy.inertiapulltorefreshview.sub.AbsListViewActivity;
 import com.amy.inertiapulltorefreshview.sub.RecyclerViewActivity;
 import com.amy.inertiapulltorefreshview.sub.ScrollViewActivity;

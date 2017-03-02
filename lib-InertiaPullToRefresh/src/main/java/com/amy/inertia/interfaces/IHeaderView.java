@@ -6,31 +6,11 @@ public interface IHeaderView {
 
     View getView();
 
-    /**
-     *
-     * @param fraction
-     * @param maxHeadHeight
-     * @param headHeight
-     */
-    void onPullingDown(float fraction, float maxHeadHeight, float headHeight);
+    void onPullingHeader(float fraction);
 
-    /**
-     *
-     * @param fraction
-     * @param maxHeadHeight
-     * @param headHeight
-     */
-    void onPullReleasing(float fraction, float maxHeadHeight, float headHeight);
+    void onPullReleasing(float fraction);
 
-    /**
-     *
-     * @param maxHeadHeight
-     * @param headHeight
-     */
-    void startAnim(float maxHeadHeight, float headHeight);
+    void startAnim(float maxHeight, float currentHeight);
 
-    /**
-     *
-     */
     void onFinish();
 }

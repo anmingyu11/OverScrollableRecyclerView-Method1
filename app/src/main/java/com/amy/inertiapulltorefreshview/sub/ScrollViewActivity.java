@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.ViewTreeObserver;
 import android.widget.ScrollView;
 
-import com.amy.inertiapulltorefreshview.LogUtil;
+import com.amy.inertia.util.LogUtil;
 import com.amy.inertiapulltorefreshview.R;
 
 public class ScrollViewActivity extends AppCompatActivity {

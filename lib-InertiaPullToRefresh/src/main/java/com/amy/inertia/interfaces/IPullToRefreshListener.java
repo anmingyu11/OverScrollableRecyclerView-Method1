@@ -6,9 +6,9 @@ public interface IPullToRefreshListener {
 
     void onPullingFooter(float fraction);
 
-    void onPullHeaderReleasing(float fraction);
+    void onHeaderReleasing(float fraction);
 
-    void onPullFooterReleasing(float fraction);
+    void onFooterReleasing(float fraction);
 
     void onHeaderRefresh();
 

@@ -3,5 +3,13 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
+    <dimen name="refresh_view_margin_top">@dimen/y180</dimen>
+    <dimen name="refresh_view_show_position">@dimen/y170</dimen>
+    <dimen name="refresh_view_height">@dimen/y370</dimen>
+    <dimen name="refresh_view_top_drag_max">@dimen/y670</dimen>
+    <dimen name="refresh_view_bottom_height">@dimen/y2560</dimen>
+    <dimen name="refresh_view_bottom_drag_max">@dimen/y670</dimen>
+    <dimen name="refresh_view_loading_size">@dimen/y70</dimen>
+
     <dimen name="scroll_view_item_size">200dp</dimen>
 </resources>

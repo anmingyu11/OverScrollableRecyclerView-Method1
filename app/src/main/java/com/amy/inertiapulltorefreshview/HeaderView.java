@@ -12,12 +12,12 @@ public class HeaderView implements IHeaderView{
     }
 
     @Override
-    public void onPullingDown(float fraction, float maxHeadHeight, float headHeight) {
+    public void onPullingHeader(float fraction) {
 
     }
 
     @Override
-    public void onPullReleasing(float fraction, float maxHeadHeight, float headHeight) {
+    public void onPullReleasing(float fraction) {
 
     }
 

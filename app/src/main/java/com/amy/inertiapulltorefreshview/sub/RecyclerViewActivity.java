@@ -11,15 +11,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.amy.inertia.interfaces.PullListenerAdapter;
 import com.amy.inertia.util.LogUtil;
+import com.amy.inertia.view.ARecyclerView;
+import com.amy.inertia.view.PullToRefreshContainer;
 import com.amy.inertiapulltorefreshview.R;
+import com.amy.inertiapulltorefreshview.header.TopLoadingRefreshView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RecyclerViewActivity extends AppCompatActivity {
 
-    private RecyclerView mRecyclerView;
+    private ARecyclerView mRecyclerView;
+
+    private PullToRefreshContainer mPullToRefreshContainer;
 
     private Context mContext;
 
@@ -63,7 +69,25 @@ public class RecyclerViewActivity extends AppCompatActivity {
         for (int i = 0; i < 20; i++) {
             mStrings.add("item  " + i);
         }
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        mPullToRefreshContainer = (PullToRefreshContainer) findViewById(R.id.container);
+        final TopLoadingRefreshView headerView = new TopLoadingRefreshView(this);
+        mPullToRefreshContainer.setHeaderView(new TopLoadingRefreshView(this));
+        mPullToRefreshContainer.addIPullListener(new PullListenerAdapter() {
+            @Override
+            public void onPullingHeader(float fraction) {
+                super.onPullingHeader(fraction);
+                headerView.onPullingHeader(fraction);
+            }
+
+            @Override
+            public void onHeaderReleasing(float fraction) {
+                super.onHeaderReleasing(fraction);
+                headerView.onPullReleasing(fraction);
+            }
+        });
+
+        mRecyclerView = (ARecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -75,6 +99,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 super.onScrolled(recyclerView, dx, dy);
             }
         });
+
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(new RecyclerView.Adapter<MyViewHolder>() {
 

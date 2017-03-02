@@ -18,7 +18,6 @@ import com.amy.inertia.util.LogUtil;
 import com.amy.inertia.util.ScrollUtil;
 import com.amy.inertia.util.Util;
 
-import static com.amy.inertia.util.LogUtil.d;
 import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_FOOTER;
 import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_FLING_HEADER;
 import static com.amy.inertia.view.AViewState.SCROLL_STATE_OVER_SCROLL_FOOTER;
@@ -86,10 +85,10 @@ public class ARecyclerView extends RecyclerView implements IAView {
             if (isScrollInContent) {
                 mAViewState.notifyScrollStateChanged(SCROLL_STATE_SETTLING_IN_CONTENT);
             } else if (isScrollToBottom) {
-                d("IsScrollToBottom : " + Util.spellArray(mAViewState.VYArray));
+                //d("IsScrollToBottom : " + Util.spellArray(mAViewState.VYArray));
                 animOverFling(mAViewState.getVy(), SCROLL_STATE_OVER_FLING_FOOTER);
             } else if (isScrollToTop) {
-                d("IsScrollToTop : " + Util.spellArray(mAViewState.VYArray));
+                //d("IsScrollToTop : " + Util.spellArray(mAViewState.VYArray));
                 animOverFling(mAViewState.getVy(), SCROLL_STATE_OVER_FLING_HEADER);
             }
         }
@@ -144,7 +143,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        LogUtil.d("touchAction : " + e.getActionMasked());
+        //LogUtil.d("touchAction : " + e.getActionMasked());
         final MotionEvent finalE = MotionEvent.obtain(e);
         mAViewState.storeMotionEvent(finalE);
         boolean result = handleTouchEvent(finalE);
@@ -252,7 +251,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
             if (result) {
                 return true;
             } else {
-                LogUtil.e("event  : " + e.getActionMasked());
+                //LogUtil.e("event  : " + e.getActionMasked());
                 //Todo : this is the best i can do
                 MotionEvent[] es = mAViewState.getMotionEvents();
                 for (int i = 0; i < es.length; i++) {
@@ -263,7 +262,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
                     }
                 }
                 LogUtil.d("state : " + AViewState.SCROLL_STATES[getScrollState()]);
-                return false;
+                return true;
                 /*
                 int dY = (y - beforeOverScrollY);
                 LogUtil.d("v= " + dY);
@@ -407,12 +406,26 @@ public class ARecyclerView extends RecyclerView implements IAView {
     private boolean overScroll(int dY) {
         int y = (int) (getTranslationY() + dY);
         LogUtil.d("y : " + y);
-        y = setViewTranslationY(getTranslationY() + dY);
+
         if (y == 0) {
             return false;
-        } else {
+        }
+
+        if (y > 0 && y > mPullToRefreshContainer.getHeaderPullMaxHeight()) {
+            return true;
+        } else if (y < 0 && y < -mPullToRefreshContainer.getFooterPullMaxHeight()) {
             return true;
         }
+
+        y = setViewTranslationY(getTranslationY() + dY);
+
+        if (y > 0) {
+            mPullToRefreshContainer.pullingHeader(y);
+        } else if (y < 0) {
+            mPullToRefreshContainer.pullingFooter(y);
+        }
+
+        return true;
     }
 
     @Override
@@ -439,7 +452,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
     @Override
     public int setViewTranslationY(float translationY) {
         //LogUtil.d("currentTranslation Y : " + translationY + " lastTranslation Y : " + getTranslationY());
-        LogUtil.d("TranslationY : " + translationY);
+        //LogUtil.d("TranslationY : " + translationY);
         int transY = -100;
 
         if (translationY > 0f && getTranslationY() < 0f) {
