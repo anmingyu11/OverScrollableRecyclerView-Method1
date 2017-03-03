@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.amy.inertia.interfaces.PullListenerAdapter;
 import com.amy.inertia.util.LogUtil;
 import com.amy.inertia.view.ARecyclerView;
 import com.amy.inertia.view.PullToRefreshContainer;
@@ -37,6 +36,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
         mContext = this;
         setContentView(R.layout.recycler_view_layout);
         setTitle("RecyclerView");
+
         /*PullToRefreshLayout pullToRefreshLayout = (PullToRefreshLayout) findViewById(R.id.pull_to_refresh);
         pullToRefreshLayout.setEnableHeaderPullToRefresh(true);
         pullToRefreshLayout.addOnPullListener("sample", new PullListenerAdapter() {
@@ -72,20 +72,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
 
         mPullToRefreshContainer = (PullToRefreshContainer) findViewById(R.id.container);
         final TopLoadingRefreshView headerView = new TopLoadingRefreshView(this);
-        mPullToRefreshContainer.setHeaderView(new TopLoadingRefreshView(this));
-        mPullToRefreshContainer.addIPullListener(new PullListenerAdapter() {
-            @Override
-            public void onPullingHeader(float fraction) {
-                super.onPullingHeader(fraction);
-                headerView.onPullingHeader(fraction);
-            }
-
-            @Override
-            public void onHeaderReleasing(float fraction) {
-                super.onHeaderReleasing(fraction);
-                headerView.onPullReleasing(fraction);
-            }
-        });
+        mPullToRefreshContainer.setHeaderView(headerView);
 
         mRecyclerView = (ARecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {

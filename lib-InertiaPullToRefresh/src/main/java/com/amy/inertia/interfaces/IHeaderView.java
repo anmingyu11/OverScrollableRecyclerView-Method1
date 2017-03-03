@@ -6,11 +6,13 @@ public interface IHeaderView {
 
     View getView();
 
-    void onPullingHeader(float fraction);
+    void setVisible(boolean visible);
 
-    void onPullReleasing(float fraction);
+    void onPulling(float fraction);
 
-    void startAnim(float maxHeight, float currentHeight);
+    void onRefresh(float maxHeight, float currentHeight);
+
+    void onReleasing(float fraction);
 
     void onFinish();
 }

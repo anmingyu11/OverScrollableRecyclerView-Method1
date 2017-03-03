@@ -181,10 +181,10 @@ public final class AViewState {
         if (CurrentScrollState != newState) {
             setScrollState(newState);
             //LogUtil.printTraceStack("where");
-            //LogUtil.e("----------------");
-            //LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
-            //LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);
-            //LogUtil.e("----------------");
+            LogUtil.e("----------------");
+            LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
+            LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);
+            LogUtil.e("----------------");
             for (OnScrollDetectorListener onScrollDetectorListener : mOnScrollDetectorListeners) {
                 onScrollDetectorListener.onScrollStateChanged(newState);
             }

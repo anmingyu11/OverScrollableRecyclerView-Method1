@@ -34,6 +34,8 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     private final AViewState mAViewState = new AViewState(this, getContext());
 
+    private AViewParams mAViewParams = null;
+
     public ARecyclerView(Context context) {
         super(context);
     }
@@ -86,10 +88,14 @@ public class ARecyclerView extends RecyclerView implements IAView {
                 mAViewState.notifyScrollStateChanged(SCROLL_STATE_SETTLING_IN_CONTENT);
             } else if (isScrollToBottom) {
                 //d("IsScrollToBottom : " + Util.spellArray(mAViewState.VYArray));
-                animOverFling(mAViewState.getVy(), SCROLL_STATE_OVER_FLING_FOOTER);
+                if (mAViewParams.isEnableOverFling) {
+                    animOverFling(mAViewState.getVy(), SCROLL_STATE_OVER_FLING_FOOTER);
+                }
             } else if (isScrollToTop) {
                 //d("IsScrollToTop : " + Util.spellArray(mAViewState.VYArray));
-                animOverFling(mAViewState.getVy(), SCROLL_STATE_OVER_FLING_HEADER);
+                if (mAViewParams.isEnableOverFling) {
+                    animOverFling(mAViewState.getVy(), SCROLL_STATE_OVER_FLING_HEADER);
+                }
             }
         }
 
@@ -97,6 +103,13 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     public AViewState getAViewState() {
         return mAViewState;
+    }
+
+    @Override
+    public void attachToParent(IPullToRefreshContainer iPullToRefresh, AViewParams aViewParams) {
+        mPullToRefreshContainer = iPullToRefresh;
+        mAViewParams = aViewParams;
+        mPullToRefreshContainer.attachToAView(this);
     }
 
     @Override
@@ -246,7 +259,13 @@ public class ARecyclerView extends RecyclerView implements IAView {
             int beforeOverScrollY = getViewTranslationY();
             int y = (int) (getTranslationY() + mAViewState.touchDY);
 
-            boolean result = overScroll(mAViewState.touchDY);
+            boolean result = false;
+
+            if (mAViewParams.isEnableOverScroll) {
+                result = overScroll(mAViewState.touchDY);
+            } else {
+                return super.onTouchEvent(e);
+            }
 
             if (result) {
                 return true;
@@ -417,21 +436,15 @@ public class ARecyclerView extends RecyclerView implements IAView {
             return true;
         }
 
-        y = setViewTranslationY(getTranslationY() + dY);
-
-        if (y > 0) {
+        if (y > 0 && mAViewParams.isEnableHeaderOverScroll) {
+            y = setViewTranslationY(getTranslationY() + dY);
             mPullToRefreshContainer.pullingHeader(y);
-        } else if (y < 0) {
+        } else if (y < 0 && mAViewParams.isEnableFooterOverScroll) {
+            y = setViewTranslationY(getTranslationY() + dY);
             mPullToRefreshContainer.pullingFooter(y);
         }
 
         return true;
-    }
-
-    @Override
-    public void attachToParent(IPullToRefreshContainer iPullToRefresh) {
-        mPullToRefreshContainer = iPullToRefresh;
-        mPullToRefreshContainer.attachToAView(this);
     }
 
     @Override

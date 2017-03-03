@@ -6,7 +6,7 @@ public abstract class PullListenerAdapter implements IPullToRefreshListener {
      * {@inheritDoc}
      */
     @Override
-    public void onPullingHeader(float fraction) {
+    public void onPullingHeader(float fraction, float currentHeight) {
 
     }
 
@@ -14,7 +14,7 @@ public abstract class PullListenerAdapter implements IPullToRefreshListener {
      * {@inheritDoc}
      */
     @Override
-    public void onPullingFooter(float fraction) {
+    public void onPullingFooter(float fraction, float currentHeight) {
 
     }
 
@@ -22,7 +22,7 @@ public abstract class PullListenerAdapter implements IPullToRefreshListener {
      * {@inheritDoc}
      */
     @Override
-    public void onHeaderReleasing(float fraction) {
+    public void onHeaderReleasing(float fraction, float currentHeight) {
 
     }
 
@@ -30,7 +30,7 @@ public abstract class PullListenerAdapter implements IPullToRefreshListener {
      * {@inheritDoc}
      */
     @Override
-    public void onFooterReleasing(float fraction) {
+    public void onFooterReleasing(float fraction, float currentHeight) {
 
     }
 

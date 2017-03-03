@@ -61,10 +61,6 @@ public interface IPullToRefreshContainer {
 
     void enableFooterOverScroll(boolean enable);
 
-    void enableHeaderOverScrollShow(boolean enable);
-
-    void enableFooterOverScrollShow(boolean enable);
-
     void setOverScrollPullDamp(float damp);
 
     //Refresh
@@ -92,10 +88,6 @@ public interface IPullToRefreshContainer {
     void headerReleasing(float currentHeight, float headerHeight);
 
     void footerReleasing(float currentHeight, float footerHeight);
-
-    void startHeaderAnim(float maxHeaderHeight);
-
-    void startFooterAnim(float maxFooterHeight);
 
     //Inside functions
     void attachToAView(IAView iaView);

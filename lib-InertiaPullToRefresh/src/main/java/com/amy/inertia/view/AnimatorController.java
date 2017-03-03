@@ -8,7 +8,6 @@ import com.amy.inertia.util.LogUtil;
 
 import java.util.HashMap;
 
-import static android.R.attr.name;
 import static com.amy.inertia.util.Util.checkNotNull;
 
 final class AnimatorController implements IAnimatorController {
@@ -96,11 +95,11 @@ final class AnimatorController implements IAnimatorController {
 
     void pauseAnim(Animator animator) {
         if (animator == null) {
-            LogUtil.d("pause anim : name you have given have animator is null or not exists");
+            //LogUtil.d("pause anim : name you have given have animator is null or not exists");
             return;
         }
         boolean pause = isAnimatorCurrentlyRunning(animator);
-        LogUtil.d("pausing animator : " + name + " canPause: " + pause);
+        //LogUtil.d("pausing animator : " + name + " canPause: " + pause);
         if (pause) {
             animator.pause();
         }
@@ -113,12 +112,12 @@ final class AnimatorController implements IAnimatorController {
 
     void resumeAnim(Animator animator) {
         if (animator == null) {
-            LogUtil.d("resume anim : name you have given have animator is null or not exists");
+            //LogUtil.d("resume anim : name you have given have animator is null or not exists");
             return;
         }
 
         boolean resume = isAnimatorCurrentlyPaused(animator);
-        LogUtil.d("resuming animator : " + name + " canResume :" + resume);
+        //LogUtil.d("resuming animator : " + name + " canResume :" + resume);
         if (resume) {
             animator.resume();
         }
@@ -131,19 +130,24 @@ final class AnimatorController implements IAnimatorController {
 
     void cancelAnim(Animator animator) {
         if (animator == null) {
-            LogUtil.d("cancel anim : name you have given have animator is null or not exists");
+            //LogUtil.d("cancel anim : name you have given have animator is null or not exists");
             return;
         }
 
         boolean cancel = isAnimatorCurrentlyRunning(animator) || isAnimatorCurrentlyPaused(animator);
-        LogUtil.d("canceling animator : " + name + " canCancel : " + cancel);
+        //LogUtil.d("canceling animator : " + name + " canCancel : " + cancel);
         if (cancel) {
             animator.cancel();
         }
     }
 
     public void addAnimator(String name, Animator animator) {
-        mAnimators.put(name, animator);
+        if (mAnimators.containsKey(name)) {
+            removeAnimator(name);
+            mAnimators.put(name, animator);
+        } else {
+            mAnimators.put(name, animator);
+        }
     }
 
     public void removeAnimator(String name) {

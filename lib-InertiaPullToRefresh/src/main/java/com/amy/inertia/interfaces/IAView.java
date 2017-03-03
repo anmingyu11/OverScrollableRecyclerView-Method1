@@ -1,5 +1,6 @@
 package com.amy.inertia.interfaces;
 
+import com.amy.inertia.view.AViewParams;
 import com.amy.inertia.view.AViewState;
 
 public interface IAView {
@@ -11,7 +12,7 @@ public interface IAView {
      *
      * @param iPullToRefresh
      */
-    void attachToParent(IPullToRefreshContainer iPullToRefresh);
+    void attachToParent(IPullToRefreshContainer iPullToRefresh, AViewParams aViewParams);
 
     /**
      * Add a Scroll Detector listener.

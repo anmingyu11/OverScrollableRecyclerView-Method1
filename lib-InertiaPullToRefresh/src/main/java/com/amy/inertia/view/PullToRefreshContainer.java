@@ -4,11 +4,8 @@ import android.animation.Animator;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 
 import com.amy.inertia.interfaces.IAView;
@@ -44,47 +41,7 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     //ChildView
     private IAView mAView;
 
-    //OverFling switch
-    private boolean isEnableOverFling = true;
-    private boolean isEnableOverFlingHeaderShow = false;
-    private boolean isEnableOverFlingFooterShow = false;
-
-    //OverFlingParams
-    private int mOverFlingDuration = 100;
-    private int mOverFlingMaxVY = 300;
-    private Interpolator mOverFlingInterpolator = new LinearInterpolator();
-
-    //OverScroll
-    private boolean isEnableOverScroll = true;
-    private boolean isEnableHeaderOverScroll = true;
-    private boolean isEnableFooterOverScroll = true;
-    private boolean isEnableHeaderOverScrollShow = false;
-    private boolean isEnableFooterOverScrollShow = false;
-
-    //OverScrollParams
-    private float mOverScrollDamp = 0.3f;
-
-    //Refresh
-    private boolean isEnableHeaderPullToRefresh = true;
-    private boolean isEnableFooterPullToRefresh = true;
-    private boolean isHeaderRefreshing = false;
-    private boolean isFooterRefreshing = false;
-
-    //ScrollBackParams
-    private int mScrollBackAnimMinDuration = 600;
-    private int mScrollBackAnimMaxDuration = 1200;
-    private float mScrollBackDamp = 7f / 10f;
-    private Interpolator mScrollBackAnimInterpolator = new DecelerateInterpolator();
-
-    //ScrollToParams
-    private int mScrollToAnimMinDuration = 300;
-    private int mScrollToAnimMaxDuration = 600;
-
-    //Trigger and Max params
-    private int mHeaderPullMaxHeight = 1000;
-    private int mFooterPullMaxHeight = 1000;
-    private int mHeaderTriggerRefreshHeight = 500;
-    private int mFooterTriggerRefreshHeight = 500;
+    private final AViewParams mAViewParams = new AViewParams();
 
     //PullListeners
     private final List<IPullToRefreshListener> mPullToRefreshListeners = new ArrayList<>();
@@ -133,7 +90,59 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     }
 
     private void initDefaultPullListener() {
-        return;
+        mPullToRefreshListeners.add(new IPullToRefreshListener() {
+            @Override
+            public void onPullingHeader(float fraction, float currentHeight) {
+                mHeaderContainer.getLayoutParams().height = (int) currentHeight;
+                mHeaderContainer.requestLayout();
+                if (mHeaderView != null) {
+                    mHeaderView.onPulling(fraction);
+                }
+            }
+
+            @Override
+            public void onPullingFooter(float fraction, float currentHeight) {
+                mFooterContainer.getLayoutParams().height = (int) currentHeight;
+                mFooterContainer.requestLayout();
+                if (mFooterView != null) {
+                    mFooterView.onPulling(fraction);
+                }
+            }
+
+            @Override
+            public void onHeaderReleasing(float fraction, float currentHeight) {
+                mHeaderContainer.getLayoutParams().height = (int) currentHeight;
+                mHeaderContainer.requestLayout();
+                if (mHeaderView != null) {
+                    mHeaderView.onReleasing(fraction);
+                }
+            }
+
+            @Override
+            public void onFooterReleasing(float fraction, float currentHeight) {
+                mFooterContainer.getLayoutParams().height = (int) currentHeight;
+                mFooterContainer.requestLayout();
+                if (mFooterView != null) {
+                    mFooterView.onReleasing(fraction);
+                }
+            }
+
+            @Override
+            public void onHeaderRefresh() {
+            }
+
+            @Override
+            public void onFooterRefresh() {
+            }
+
+            @Override
+            public void onFinishHeaderRefresh() {
+            }
+
+            @Override
+            public void onFinishFooterRefresh() {
+            }
+        });
     }
 
     private void initChildView() {
@@ -148,7 +157,7 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         }
 
         if (mAView != null) {
-            mAView.attachToParent(this);
+            mAView.attachToParent(this, mAViewParams);
         } else {
             throw new NullPointerException("ChildView cannot be null.");
         }
@@ -157,12 +166,6 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     private void initFooterAndHeader() {
         //Init Header container
         mHeaderContainer = new FrameLayout(getContext());
-        mHeaderContainer.addOnLayoutChangeListener(new OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                View hv = mHeaderView.getView();
-            }
-        });
         LayoutParams headerLayoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
         headerLayoutParams.gravity = Gravity.TOP;
         mHeaderContainer.setLayoutParams(headerLayoutParams);
@@ -202,92 +205,82 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
     @Override
     public void enableOverFling(boolean enable) {
-        isEnableOverFling = enable;
+        mAViewParams.isEnableOverFling = enable;
     }
 
     @Override
     public void enableOverFlingHeaderShow(boolean enable) {
-        isEnableOverFlingHeaderShow = enable;
+        mAViewParams.isEnableOverFlingHeaderShow = enable;
     }
 
     @Override
     public void enableOverFlingFooterShow(boolean enable) {
-        isEnableOverFlingFooterShow = enable;
+        mAViewParams.isEnableOverFlingFooterShow = enable;
     }
 
     @Override
     public void setOverFlingMaxVy(int maxVY) {
-        mOverFlingMaxVY = maxVY;
+        mAViewParams.mOverFlingMaxVY = maxVY;
     }
 
     @Override
     public void setOverFlingDuration(int duration) {
-        mOverFlingDuration = duration;
+        mAViewParams.mOverFlingDuration = duration;
     }
 
     @Override
     public void setOverFlingInterpolator(Interpolator interpolator) {
-        mOverFlingInterpolator = interpolator;
+        mAViewParams.mOverFlingInterpolator = interpolator;
     }
 
     @Override
     public void setScrollBackMinDuration(int duration) {
-        mScrollBackAnimMinDuration = duration;
+        mAViewParams.mScrollBackAnimMinDuration = duration;
     }
 
     @Override
     public void setScrollBackMaxDuration(int duration) {
-        mScrollBackAnimMaxDuration = duration;
+        mAViewParams.mScrollBackAnimMaxDuration = duration;
     }
 
     @Override
     public void setScrollToMinDuration(int duration) {
-        mScrollToAnimMinDuration = duration;
+        mAViewParams.mScrollToAnimMinDuration = duration;
     }
 
     @Override
     public void setScrollToMaxDuration(int duration) {
-        mScrollToAnimMaxDuration = duration;
+        mAViewParams.mScrollToAnimMaxDuration = duration;
     }
 
     @Override
     public void setScrollBackDamp(float damp) {
-        mScrollBackDamp = damp;
+        mAViewParams.mScrollBackDamp = damp;
     }
 
     @Override
     public void setScrollBackInterpolator(Interpolator interpolator) {
-        mScrollBackAnimInterpolator = interpolator;
+        mAViewParams.mScrollBackAnimInterpolator = interpolator;
     }
 
     @Override
     public void enableOverScroll(boolean enable) {
-        isEnableOverScroll = enable;
+        mAViewParams.isEnableOverScroll = enable;
     }
 
     @Override
     public void enableHeaderOverScroll(boolean enable) {
-        isEnableHeaderOverScroll = enable;
+        mAViewParams.isEnableHeaderOverScroll = enable;
     }
 
     @Override
     public void enableFooterOverScroll(boolean enable) {
-        isEnableFooterOverScroll = enable;
-    }
-
-    @Override
-    public void enableHeaderOverScrollShow(boolean enable) {
-        isEnableHeaderOverScrollShow = enable;
-    }
-
-    @Override
-    public void enableFooterOverScrollShow(boolean enable) {
-        isEnableFooterOverScrollShow = enable;
+        mAViewParams.isEnableFooterOverScroll = enable;
     }
 
     @Override
     public void setOverScrollPullDamp(float damp) {
-        mOverScrollDamp = damp;
+        mAViewParams.mOverScrollDamp = damp;
     }
 
     @Override
@@ -302,22 +295,22 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
     @Override
     public void enableHeaderPullToRefresh(boolean enable) {
-        isEnableHeaderPullToRefresh = enable;
+        mAViewParams.isEnableHeaderPullToRefresh = enable;
     }
 
     @Override
     public void enableFooterPullToRefresh(boolean enable) {
-        isEnableFooterPullToRefresh = enable;
+        mAViewParams.isEnableFooterPullToRefresh = enable;
     }
 
     @Override
     public boolean isHeaderRefreshing() {
-        return isHeaderRefreshing;
+        return mAViewParams.isHeaderRefreshing;
     }
 
     @Override
     public boolean isFooterRefreshing() {
-        return isFooterRefreshing;
+        return mAViewParams.isFooterRefreshing;
     }
 
     @Override
@@ -332,82 +325,69 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
     @Override
     public void pullingHeader(final float currentHeight) {
-        mHeaderContainer.getLayoutParams().height = (int) currentHeight;
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onPullingHeader(currentHeight / mHeaderTriggerRefreshHeight);
+            iPullToRefreshListener.onPullingHeader(currentHeight / mAViewParams.mHeaderTriggerRefreshHeight, currentHeight);
         }
-        mHeaderContainer.requestLayout();
     }
 
     @Override
     public void pullingFooter(float currentHeight) {
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onPullingFooter(currentHeight / mFooterPullMaxHeight);
+            iPullToRefreshListener.onPullingFooter(currentHeight / mAViewParams.mFooterPullMaxHeight, currentHeight);
         }
     }
 
     @Override
     public void headerReleasing(float currentHeight, float headerHeight) {
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onHeaderReleasing(currentHeight / headerHeight);
+            iPullToRefreshListener.onHeaderReleasing(currentHeight / headerHeight, currentHeight);
         }
     }
 
     @Override
     public void footerReleasing(float currentHeight, float footerHeight) {
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onFooterReleasing(currentHeight / footerHeight);
+            iPullToRefreshListener.onFooterReleasing(currentHeight / footerHeight, currentHeight);
         }
     }
 
-    @Override
-    public void startHeaderAnim(float currentHeight) {
-        mHeaderView.startAnim(mHeaderPullMaxHeight, currentHeight);
-    }
-
-    @Override
-    public void startFooterAnim(float currentHeight) {
-        mFooterView.startAnim(mFooterPullMaxHeight, currentHeight);
-    }
-
-    @Override
     public void setHeaderTriggerRefreshHeight(int triggerHeight) {
-        mHeaderTriggerRefreshHeight = triggerHeight;
+        mAViewParams.mHeaderTriggerRefreshHeight = triggerHeight;
     }
 
     @Override
     public void setFooterTriggerRefreshHeight(int triggerHeight) {
-        mFooterTriggerRefreshHeight = triggerHeight;
+        mAViewParams.mFooterTriggerRefreshHeight = triggerHeight;
     }
 
     @Override
     public void setHeaderPullMaxHeight(int maxHeight) {
-        mHeaderPullMaxHeight = maxHeight;
+        mAViewParams.mHeaderPullMaxHeight = maxHeight;
     }
 
     @Override
     public void setFooterPullMaxHeight(int maxHeight) {
-        mFooterPullMaxHeight = maxHeight;
+        mAViewParams.mFooterPullMaxHeight = maxHeight;
     }
 
     @Override
     public int getHeaderTriggerRefreshHeight() {
-        return mHeaderTriggerRefreshHeight;
+        return mAViewParams.mHeaderTriggerRefreshHeight;
     }
 
     @Override
     public int getFooterTriggerRefreshHeight() {
-        return mFooterTriggerRefreshHeight;
+        return mAViewParams.mFooterTriggerRefreshHeight;
     }
 
     @Override
     public int getHeaderPullMaxHeight() {
-        return mHeaderPullMaxHeight;
+        return mAViewParams.mHeaderPullMaxHeight;
     }
 
     @Override
     public int getFooterPullMaxHeight() {
-        return mFooterPullMaxHeight;
+        return mAViewParams.mFooterPullMaxHeight;
     }
 
     @Override
@@ -432,9 +412,9 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         }
 
         int duration = Math.min(
-                mScrollBackAnimMaxDuration,
-                Math.max(Math.abs((int) (start * mScrollBackDamp)),
-                        mScrollBackAnimMinDuration)
+                mAViewParams.mScrollBackAnimMaxDuration,
+                Math.max(Math.abs((int) (start * mAViewParams.mScrollBackDamp)),
+                        mAViewParams.mScrollBackAnimMinDuration)
         );
 
         LogUtil.d("duration : " + duration);
@@ -444,13 +424,15 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
                         mAView,
                         start,
                         duration,
-                        mScrollBackAnimInterpolator);
+                        mAViewParams.mScrollBackAnimInterpolator);
 
         return scrollBack;
     }
 
     @Override
     public Animator buildOverFlingAnim(float vY) {
+        changeHeaderOrFooterVisibility();
+
         final String key = ANIM_OVER_FLING;
 
         if (vY < 1f && vY > -1f) {
@@ -459,30 +441,44 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
             return null;
         }
 
-        if (vY > 0 && mOverFlingMaxVY < 0) {
-            mOverFlingMaxVY = -mOverFlingMaxVY;
-        } else if (vY < 0 && mOverFlingMaxVY > 0) {
-            mOverFlingMaxVY = -mOverFlingMaxVY;
+        if (vY > 0 && mAViewParams.mOverFlingMaxVY < 0) {
+            mAViewParams.mOverFlingMaxVY = -mAViewParams.mOverFlingMaxVY;
+        } else if (vY < 0 && mAViewParams.mOverFlingMaxVY > 0) {
+            mAViewParams.mOverFlingMaxVY = -mAViewParams.mOverFlingMaxVY;
         }
 
-        final float finalVy = Math.abs(vY) < Math.abs(mOverFlingMaxVY) ? vY : mOverFlingMaxVY;
+        final float finalVy = Math.abs(vY) < Math.abs(mAViewParams.mOverFlingMaxVY) ? vY : mAViewParams.mOverFlingMaxVY;
         d(key + " finalVY : " + finalVy);
 
         Animator overFling =
-                mAnimatorBuilder.buildOverFlingAnimator(mAView,
+                mAnimatorBuilder.buildOverFlingAnimator(
+                        mPullToRefreshListeners,
+                        mAView,
+                        vY > 0 ? mAViewParams.mHeaderTriggerRefreshHeight : mAViewParams.mFooterTriggerRefreshHeight,
                         finalVy,
-                        mOverFlingDuration,
-                        mOverFlingInterpolator);
+                        mAViewParams.mOverFlingDuration,
+                        mAViewParams.mOverFlingInterpolator);
+
 
         return overFling;
+    }
+
+    private void changeHeaderOrFooterVisibility() {
+        if (mHeaderView != null) {
+            mHeaderView.setVisible(mAViewParams.isEnableOverFlingHeaderShow);
+        }
+
+        if (mFooterView != null) {
+            mFooterView.setVisible(mAViewParams.isEnableOverFlingFooterShow);
+        }
     }
 
     @Override
     public Animator buildScrollToTriggerAnim() {
         if (mAView.getViewTranslationY() > 0) {
-            return buildScrollToAnim(mAView.getViewTranslationY(), mHeaderTriggerRefreshHeight);
+            return buildScrollToAnim(mAView.getViewTranslationY(), mAViewParams.mHeaderTriggerRefreshHeight);
         } else if (mAView.getViewTranslationY() < 0) {
-            return buildScrollToAnim(mAView.getViewTranslationY(), -mHeaderTriggerRefreshHeight);
+            return buildScrollToAnim(mAView.getViewTranslationY(), -mAViewParams.mHeaderTriggerRefreshHeight);
         } else {
             return null;
         }
@@ -493,16 +489,16 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         d(key + " : " + " start : " + start + " to : " + to);
 
         int duration = Math.min(
-                mScrollToAnimMaxDuration,
-                Math.max(Math.abs((int) ((start - to) * mScrollBackDamp)),
-                        mScrollToAnimMinDuration)
+                mAViewParams.mScrollToAnimMaxDuration,
+                Math.max(Math.abs((int) ((start - to) * mAViewParams.mScrollBackDamp)),
+                        mAViewParams.mScrollToAnimMinDuration)
         );
 
         Animator scrollTo = mAnimatorBuilder.buildScrollToAnim(mPullToRefreshListeners,
                 mAView,
                 to,
                 duration,
-                mScrollBackAnimInterpolator);
+                mAViewParams.mScrollBackAnimInterpolator);
 
         return scrollTo;
     }

@@ -14,7 +14,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.amy.inertia.interfaces.IHeaderView;
-import com.amy.inertia.util.LogUtil;
 import com.amy.inertiapulltorefreshview.R;
 
 public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
@@ -51,48 +50,28 @@ public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
     }
 
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        LogUtil.i("\n pivotY : " + mLoadingIcon.getPivotY()
-                + " pivotX : " + mLoadingIcon.getPivotX()
-                + "\n x : " + mLoadingIcon.getX()
-                + " y : " + mLoadingIcon.getY()
-                + "\n top : " + mLoadingIcon.getTop()
-                + " bottom : " + mLoadingIcon.getBottom()
-                + " left : " + mLoadingIcon.getLeft()
-                + " right : " + mLoadingIcon.getRight()
-        );
-        LogUtil.i("onLayout " + " changed : " + changed + " left : " + left + " top : " + top + " right : " + right + " bottom : " + bottom);
-        // LogUtil.printTraceStack("::");
-    }
-
-    /*
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-        LogUtil.d("onFinishInflate");
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        LogUtil.d("onAttachedToWindow");
-    }
-*/
-
-    @Override
     public View getView() {
         return this;
     }
 
     @Override
-    public void onPullingHeader(float fraction) {
+    public void setVisible(boolean visible) {
+        if (visible) {
+            mLoadingIcon.setVisibility(VISIBLE);
+        } else {
+            mLoadingIcon.setVisibility(GONE);
+        }
+    }
+
+    @Override
+    public void onPulling(float fraction) {
         float baseRotation = 180f;
         float loadingIconY = mLoadingIcon.getY();
-
+/*
         LogUtil.d("loadingIconY : " + loadingIconY
                 + " showLocation : " + mLoadingIconShowPosition
                 + " fraction : " + fraction);
+*/
 
         if (loadingIconY < mLoadingIconShowPosition) {
             if (mLoadingIcon.getAlpha() > 0.01f) {
@@ -103,12 +82,14 @@ public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
         }
 
         float deltaFraction = fraction - mOldFraction;
+
         /*
         LogUtil.d("amy" +
                 "down "
                 + " headHeight : " + headHeight
                 + " maxHeadHeight : " + maxHeadHeight);
                 */
+/*
         LogUtil.d("\n pivotY : " + mLoadingIcon.getPivotY()
                 + " pivotX : " + mLoadingIcon.getPivotX()
                 + "\n x : " + mLoadingIcon.getX()
@@ -122,6 +103,7 @@ public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
         LogUtil.i(" height : " + mLoadingIcon.getLayoutParams().height + " width : " + mLoadingIcon.getLayoutParams().width);
         LogUtil.i(" rotation : " + mLoadingIcon.getRotation());
         LogUtil.i(" alpha : " + mLoadingIcon.getAlpha());
+*/
 
         if (fraction < 0f) {
             throw new IllegalArgumentException("fraction can not < 0");
@@ -133,14 +115,14 @@ public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
         }
         setLoadingIconRotate(mLoadingIcon.getRotation() + deltaFraction * baseRotation);
 
-        LogUtil.d("amy" + "Pulling releasing " + " oldFraction : " + mOldFraction);
+        //LogUtil.d("amy" + "Pulling releasing " + " oldFraction : " + mOldFraction);
         mOldFraction = fraction;
-        LogUtil.d("amy" + "Pulling down " + " newFraction : " + fraction);
-        LogUtil.d("amy" + "Pulling down " + " deltaFraction : " + deltaFraction);
+        //LogUtil.d("amy" + "Pulling down " + " newFraction : " + fraction);
+        //LogUtil.d("amy" + "Pulling down " + " deltaFraction : " + deltaFraction);
     }
 
     @Override
-    public void onPullReleasing(float fraction) {
+    public void onReleasing(float fraction) {
         float baseRotation = 180f;
         float loadingIconY = mLoadingIcon.getY();
         /*
@@ -171,6 +153,7 @@ public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
                 + " right : " + mLoadingIcon.getRight()
         );
         */
+
         float deltaFraction = fraction - mOldFraction;
 
         if (fraction < 0f) {
@@ -191,7 +174,7 @@ public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
     }
 
     @Override
-    public void startAnim(float maxHeadHeight, float headHeight) {
+    public void onRefresh(float maxHeadHeight, float headHeight) {
         if (mRotateAnimation == null) {
             mRotateAnimation = getLoadingRotateAnimation();
         }

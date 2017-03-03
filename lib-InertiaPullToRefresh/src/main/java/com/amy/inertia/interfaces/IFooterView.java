@@ -6,11 +6,13 @@ public interface IFooterView {
 
     View getView();
 
-    void onPullingUp(float fraction,float maxHeadHeight,float headHeight);
+    void setVisible(boolean visible);
 
-    void startAnim(float maxHeight,float currentHeight);
+    void onPulling(float fraction);
 
-    void onPullReleasing(float fraction,float maxHeadHeight,float headHeight);
+    void onRefresh(float maxHeight, float currentHeight);
+
+    void onReleasing(float fraction);
 
     void onFinish();
 }

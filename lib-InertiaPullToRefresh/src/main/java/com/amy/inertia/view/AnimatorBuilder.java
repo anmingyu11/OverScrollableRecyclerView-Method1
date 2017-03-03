@@ -102,15 +102,15 @@ final class AnimatorBuilder {
 
                 float fraction = value / start;
                 //LogUtil.d("fraction : " + value / start);
-                if (start < 0f) {
+                if (start > 0f) {
                     //Scroll back to top
                     for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onHeaderReleasing(fraction);
+                        iPullToRefreshListener.onHeaderReleasing(fraction, value);
                     }
                 } else {
                     //Scroll back to bottom
                     for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onFooterReleasing(fraction);
+                        iPullToRefreshListener.onFooterReleasing(fraction, value);
                     }
                 }
             }
@@ -120,11 +120,13 @@ final class AnimatorBuilder {
     }
 
 
-    public Animator buildOverFlingAnimator(final IAView iaView,
+    public Animator buildOverFlingAnimator(final List<IPullToRefreshListener> iPullToRefreshListeners,
+                                           final IAView iaView,
+                                           final float triggerHeight,
                                            final float vY,
                                            int duration,
                                            Interpolator interpolator) {
-        LogUtil.d("over scroll animator start value : " + vY);
+        LogUtil.d("over fling animator start value : " + vY);
 
         ValueAnimator overScrollAnimator = null;
 
@@ -135,7 +137,24 @@ final class AnimatorBuilder {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float value = (float) animation.getAnimatedValue();
-                iaView.setViewTranslationY(iaView.getViewTranslationY() + value);
+
+                float currentHeight = value + iaView.getViewTranslationY();
+
+                iaView.setViewTranslationY(currentHeight);
+
+                float fraction = currentHeight / triggerHeight;
+                //LogUtil.d("fraction : " + value / start);
+                if (currentHeight > 0f) {
+                    //Scroll to top
+                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
+                        iPullToRefreshListener.onPullingHeader(fraction, currentHeight);
+                    }
+                } else {
+                    //Scroll to bottom
+                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
+                        iPullToRefreshListener.onPullingFooter(fraction, currentHeight);
+                    }
+                }
             }
         });
 
@@ -166,12 +185,12 @@ final class AnimatorBuilder {
                 if (to < 0f) {
                     //Scroll to top
                     for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onHeaderReleasing(fraction);
+                        iPullToRefreshListener.onHeaderReleasing(fraction, value);
                     }
                 } else {
                     //Scroll to bottom
                     for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onFooterReleasing(fraction);
+                        iPullToRefreshListener.onFooterReleasing(fraction, value);
                     }
                 }
             }
