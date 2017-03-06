@@ -8,6 +8,8 @@ public interface IFooterView {
 
     void setVisible(boolean visible);
 
+    //boolean isVisible();
+
     void onPulling(float fraction);
 
     void onRefresh(float maxHeight, float currentHeight);

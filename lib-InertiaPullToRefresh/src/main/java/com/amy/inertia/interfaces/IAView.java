@@ -1,11 +1,19 @@
 package com.amy.inertia.interfaces;
 
+import android.os.Message;
+
 import com.amy.inertia.view.AViewParams;
 import com.amy.inertia.view.AViewState;
 
 public interface IAView {
 
+    int FINISH_HEADER_REFRESH = 0;
+
+    int FINISH_FOOTER_REFRESH = 1;
+
     AViewState getAViewState();
+
+    void sendMessage(Message message);
 
     /**
      * Attach to inertia pull to refresh view.

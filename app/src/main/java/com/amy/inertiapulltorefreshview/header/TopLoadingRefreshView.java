@@ -56,13 +56,31 @@ public class TopLoadingRefreshView extends FrameLayout implements IHeaderView {
 
     @Override
     public void setVisible(boolean visible) {
-        if (visible) {
+        if (visible){
             mLoadingIcon.setVisibility(VISIBLE);
         } else {
             mLoadingIcon.setVisibility(GONE);
         }
     }
 
+   /* @Override
+    public boolean isVisible() {
+        switch (mLoadingIcon.getVisibility()) {
+            case GONE: {
+                return false;
+            }
+            case VISIBLE: {
+                return true;
+            }
+            case INVISIBLE: {
+                return false;
+            }
+            default: {
+                return false;
+            }
+        }
+    }
+*/
     @Override
     public void onPulling(float fraction) {
         float baseRotation = 180f;

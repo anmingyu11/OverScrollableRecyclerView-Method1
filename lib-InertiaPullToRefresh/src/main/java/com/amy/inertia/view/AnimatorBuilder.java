@@ -2,92 +2,39 @@ package com.amy.inertia.view;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
 
 import com.amy.inertia.interfaces.IAView;
-import com.amy.inertia.interfaces.IPullToRefreshListener;
+import com.amy.inertia.interfaces.IPullToRefreshContainer;
 import com.amy.inertia.util.LogUtil;
-
-import java.util.List;
 
 final class AnimatorBuilder {
     static final String ANIM_SCROLL_BACK = "ANIM_SCROLL_BACK";
     static final String ANIM_SCROLL_TO = "ANIM_SCROLL_TO";
     static final String ANIM_OVER_FLING = "ANIM_OVER_FLING";
 
-    int mOverFlingDuration = 70;
-    float mOverFlingMaxVy = 1000;
-    final Interpolator mOverFlingInterpolator = new LinearInterpolator();
-
-    //ScrollBackAnim
-    int mScrollBackAnimMinDuration = 750;
-    int mScrollBackAnimMaxDuration = 1000;
-    float mScrollBackAnimDamp = 1f;
-    final Interpolator mScrollBackInterpolator = new DecelerateInterpolator(mScrollBackAnimDamp);
-
-    //ScrollToAnim
-    int mScrollToAnimMinDuration = 200;
-    int mScrollToAnimMaxDuration = 400;
-    float mScrollToAnimDamp = 1f;
-    final Interpolator mScrollToInterpolator = new DecelerateInterpolator(mScrollToAnimDamp);
-
     private static AnimatorBuilder sInstance;
+    private AViewParams mParams = null;
 
-    static AnimatorBuilder getInstance() {
+    static AnimatorBuilder getInstance(AViewParams aViewParams) {
         if (sInstance == null) {
-            return sInstance = new AnimatorBuilder();
+            return sInstance = new AnimatorBuilder(aViewParams);
         }
         return sInstance;
     }
 
-    private AnimatorBuilder() {
+    private AnimatorBuilder(AViewParams aViewParams) {
+        mParams = aViewParams;
     }
 
-    /*
-
-     public Animator buildScrollToAnimator(final float start, final float to, int duration) {
-         int realDuration = Math.min(
-                 Math.max(mScrollToAnimMinDuration, duration),
-                 mScrollToAnimMaxDuration
-         );
-
-         scrollToAnimator = ObjectAnimator.ofFloat(mAView, "viewTranslationY", start, to);
-         scrollToAnimator.setDuration(realDuration);
-         scrollToAnimator.setInterpolator(mScrollToInterpolator);
-         scrollToAnimator.addListener(new AnimatorListenerAdapter() {
-
-             @Override
-             public void onAnimationStart(Animator animation) {
-                 super.onAnimationStart(animation);
-                 mAView.setViewTranslationY(start);
-             }
-
-             @Override
-             public void onAnimationCancel(Animator animation) {
-                 super.onAnimationCancel(animation);
-                 float translationY = mAView.getViewTranslationY();
-                 boolean isPaused = animation.isPaused();
-                 LogUtil.d(ANIM_SCROLL_TO + " onAnimationCancel " + " isPaused: " + isPaused + " translationY : " + translationY);
-                 //if (!isPaused) {
-                 mAView.setViewTranslationY(to);
-                 //}
-             }
-         });
-         addAnimator(ANIM_SCROLL_TO, scrollToAnimator);
-         return scrollToAnimator;
-     }
-
-     */
-
-    Animator buildScrollBackAnimator(final List<IPullToRefreshListener> iPullToRefreshListeners,
+    Animator buildScrollBackAnimator(final IPullToRefreshContainer iPullToRefreshContainer,
                                      final IAView iaView,
                                      final float start,
                                      int duration,
                                      Interpolator interpolator) {
 
-        //Todo : check if start =0.0f.
+        LogUtil.d("scroll back start at : " + start + " duration : " + duration);
+
         ValueAnimator scrollBackAnimator = null;
 
         scrollBackAnimator = ValueAnimator.ofFloat(start, 0);
@@ -100,18 +47,14 @@ final class AnimatorBuilder {
 
                 iaView.setViewTranslationY(value);
 
-                float fraction = value / start;
+                //float fraction = value / start;
                 //LogUtil.d("fraction : " + value / start);
                 if (start > 0f) {
                     //Scroll back to top
-                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onHeaderReleasing(fraction, value);
-                    }
+                    iPullToRefreshContainer.headerReleasing(value);
                 } else {
                     //Scroll back to bottom
-                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onFooterReleasing(fraction, value);
-                    }
+                    iPullToRefreshContainer.footerReleasing(value);
                 }
             }
         });
@@ -120,13 +63,13 @@ final class AnimatorBuilder {
     }
 
 
-    public Animator buildOverFlingAnimator(final List<IPullToRefreshListener> iPullToRefreshListeners,
+    public Animator buildOverFlingAnimator(final IPullToRefreshContainer iPullToRefreshContainer,
                                            final IAView iaView,
                                            final float triggerHeight,
                                            final float vY,
                                            int duration,
                                            Interpolator interpolator) {
-        LogUtil.d("over fling animator start value : " + vY);
+        LogUtil.d("over fling animator start value : " + vY + " duration : " + duration);
 
         ValueAnimator overScrollAnimator = null;
 
@@ -142,18 +85,14 @@ final class AnimatorBuilder {
 
                 iaView.setViewTranslationY(currentHeight);
 
-                float fraction = currentHeight / triggerHeight;
+                //float fraction = currentHeight / triggerHeight;
                 //LogUtil.d("fraction : " + value / start);
                 if (currentHeight > 0f) {
                     //Scroll to top
-                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onPullingHeader(fraction, currentHeight);
-                    }
+                    iPullToRefreshContainer.pullingHeader(currentHeight);
                 } else {
                     //Scroll to bottom
-                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onPullingFooter(fraction, currentHeight);
-                    }
+                    iPullToRefreshContainer.pullingFooter(currentHeight);
                 }
             }
         });
@@ -161,16 +100,18 @@ final class AnimatorBuilder {
         return overScrollAnimator;
     }
 
-    public Animator buildScrollToAnim(final List<IPullToRefreshListener> iPullToRefreshListeners,
+    public Animator buildScrollToAnim(final IPullToRefreshContainer iPullToRefreshContainer,
                                       final IAView iaView,
                                       final float to,
                                       int duration,
                                       Interpolator interpolator) {
-        LogUtil.d("scroll to " + to);
+        LogUtil.d("scroll to " + to + " duration : " + duration + " transY : " + iaView.getViewTranslationY());
 
         ValueAnimator scrollToAnimator = null;
 
-        scrollToAnimator = ValueAnimator.ofFloat(to);
+        float start = iaView.getViewTranslationY();
+
+        scrollToAnimator = ValueAnimator.ofFloat(start, to);
         scrollToAnimator.setDuration(duration);
         scrollToAnimator.setInterpolator(interpolator);
         scrollToAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -180,18 +121,14 @@ final class AnimatorBuilder {
 
                 iaView.setViewTranslationY(value);
 
-                float fraction = value / to;
+                //float fraction = value / to;
                 //LogUtil.d("fraction : " + value / start);
-                if (to < 0f) {
+                if (to > 0f) {
                     //Scroll to top
-                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onHeaderReleasing(fraction, value);
-                    }
+                    iPullToRefreshContainer.headerReleasing(value);
                 } else {
                     //Scroll to bottom
-                    for (IPullToRefreshListener iPullToRefreshListener : iPullToRefreshListeners) {
-                        iPullToRefreshListener.onFooterReleasing(fraction, value);
-                    }
+                    iPullToRefreshContainer.footerReleasing(value);
                 }
             }
         });

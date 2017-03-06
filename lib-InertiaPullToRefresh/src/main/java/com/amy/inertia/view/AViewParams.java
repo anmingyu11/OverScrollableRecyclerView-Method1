@@ -20,6 +20,8 @@ public final class AViewParams {
     boolean isEnableOverScroll = true;
     boolean isEnableHeaderOverScroll = true;
     boolean isEnableFooterOverScroll = true;
+    boolean isEnableOverScrollHeaderShow = true;
+    boolean isEnableOverScrollFooterShow = true;
 
     //OverScrollParams
     float mOverScrollDamp = 0.3f;

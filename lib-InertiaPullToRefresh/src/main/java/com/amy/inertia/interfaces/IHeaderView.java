@@ -8,6 +8,8 @@ public interface IHeaderView {
 
     void setVisible(boolean visible);
 
+    //boolean isVisible();
+
     void onPulling(float fraction);
 
     void onRefresh(float maxHeight, float currentHeight);

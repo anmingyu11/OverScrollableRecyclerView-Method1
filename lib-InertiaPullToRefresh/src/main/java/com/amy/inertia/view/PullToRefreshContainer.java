@@ -2,6 +2,7 @@ package com.amy.inertia.view;
 
 import android.animation.Animator;
 import android.content.Context;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -46,7 +47,7 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     //PullListeners
     private final List<IPullToRefreshListener> mPullToRefreshListeners = new ArrayList<>();
 
-    private AnimatorBuilder mAnimatorBuilder = AnimatorBuilder.getInstance();
+    private final AnimatorBuilder mAnimatorBuilder = AnimatorBuilder.getInstance(mAViewParams);
 
     public PullToRefreshContainer(Context context) {
         this(context, null, 0);
@@ -90,59 +91,6 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     }
 
     private void initDefaultPullListener() {
-        mPullToRefreshListeners.add(new IPullToRefreshListener() {
-            @Override
-            public void onPullingHeader(float fraction, float currentHeight) {
-                mHeaderContainer.getLayoutParams().height = (int) currentHeight;
-                mHeaderContainer.requestLayout();
-                if (mHeaderView != null) {
-                    mHeaderView.onPulling(fraction);
-                }
-            }
-
-            @Override
-            public void onPullingFooter(float fraction, float currentHeight) {
-                mFooterContainer.getLayoutParams().height = (int) currentHeight;
-                mFooterContainer.requestLayout();
-                if (mFooterView != null) {
-                    mFooterView.onPulling(fraction);
-                }
-            }
-
-            @Override
-            public void onHeaderReleasing(float fraction, float currentHeight) {
-                mHeaderContainer.getLayoutParams().height = (int) currentHeight;
-                mHeaderContainer.requestLayout();
-                if (mHeaderView != null) {
-                    mHeaderView.onReleasing(fraction);
-                }
-            }
-
-            @Override
-            public void onFooterReleasing(float fraction, float currentHeight) {
-                mFooterContainer.getLayoutParams().height = (int) currentHeight;
-                mFooterContainer.requestLayout();
-                if (mFooterView != null) {
-                    mFooterView.onReleasing(fraction);
-                }
-            }
-
-            @Override
-            public void onHeaderRefresh() {
-            }
-
-            @Override
-            public void onFooterRefresh() {
-            }
-
-            @Override
-            public void onFinishHeaderRefresh() {
-            }
-
-            @Override
-            public void onFinishFooterRefresh() {
-            }
-        });
     }
 
     private void initChildView() {
@@ -279,18 +227,18 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     }
 
     @Override
+    public void enableOverScrollHeaderShow(boolean enable) {
+        mAViewParams.isEnableOverScrollHeaderShow = enable;
+    }
+
+    @Override
+    public void enableOverScrollFooterShow(boolean enable) {
+        mAViewParams.isEnableOverScrollFooterShow = enable;
+    }
+
+    @Override
     public void setOverScrollPullDamp(float damp) {
         mAViewParams.mOverScrollDamp = damp;
-    }
-
-    @Override
-    public void finishHeaderRefresh() {
-
-    }
-
-    @Override
-    public void finishFooterRefresh() {
-
     }
 
     @Override
@@ -325,29 +273,107 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
     @Override
     public void pullingHeader(final float currentHeight) {
+        float fraction = currentHeight / mAViewParams.mHeaderTriggerRefreshHeight;
+        fraction = Math.abs(fraction);
+        mHeaderContainer.getLayoutParams().height = (int) currentHeight;
+        mHeaderContainer.requestLayout();
+
+        if (mHeaderView != null) {
+            mHeaderView.onPulling(fraction);
+        }
+
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onPullingHeader(currentHeight / mAViewParams.mHeaderTriggerRefreshHeight, currentHeight);
+            iPullToRefreshListener.onPullingHeader(fraction, currentHeight);
         }
     }
 
     @Override
     public void pullingFooter(float currentHeight) {
+        float fraction = currentHeight / mAViewParams.mFooterTriggerRefreshHeight;
+        fraction = Math.abs(fraction);
+        mFooterContainer.getLayoutParams().height = (int) currentHeight;
+        mFooterContainer.requestLayout();
+
+        if (mFooterView != null) {
+            mFooterView.onPulling(fraction);
+        }
+
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onPullingFooter(currentHeight / mAViewParams.mFooterPullMaxHeight, currentHeight);
+            iPullToRefreshListener.onPullingFooter(fraction, currentHeight);
         }
     }
 
     @Override
-    public void headerReleasing(float currentHeight, float headerHeight) {
+    public void headerReleasing(float currentHeight) {
+        float fraction = currentHeight / mAViewParams.mHeaderTriggerRefreshHeight;
+        fraction = Math.abs(fraction);
+        mHeaderContainer.getLayoutParams().height = (int) currentHeight;
+        mHeaderContainer.requestLayout();
+
+        if (mHeaderView != null) {
+            mHeaderView.onReleasing(fraction);
+        }
+
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onHeaderReleasing(currentHeight / headerHeight, currentHeight);
+            iPullToRefreshListener.onHeaderReleasing(fraction, currentHeight);
         }
     }
 
     @Override
-    public void footerReleasing(float currentHeight, float footerHeight) {
+    public void footerReleasing(float currentHeight) {
+        float fraction = currentHeight / mAViewParams.mFooterTriggerRefreshHeight;
+        fraction = Math.abs(fraction);
+        mFooterContainer.getLayoutParams().height = (int) currentHeight;
+        mFooterContainer.requestLayout();
+
+        if (mFooterView != null) {
+            mFooterView.onReleasing(fraction);
+        }
+
         for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
-            iPullToRefreshListener.onFooterReleasing(currentHeight / footerHeight, currentHeight);
+            iPullToRefreshListener.onFooterReleasing(fraction, currentHeight);
+        }
+    }
+
+    @Override
+    public void headerRefresh() {
+        if (mHeaderView != null) {
+            mHeaderView.onRefresh(mAViewParams.mHeaderPullMaxHeight, mAView.getViewTranslationY());
+        }
+
+        for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
+            iPullToRefreshListener.onHeaderRefresh();
+        }
+    }
+
+    @Override
+    public void footerRefresh() {
+        if (mFooterView != null) {
+            mFooterView.onRefresh(mAViewParams.mFooterPullMaxHeight, mAView.getViewTranslationY());
+        }
+
+        for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
+            iPullToRefreshListener.onFooterRefresh();
+        }
+    }
+
+    @Override
+    public void finishHeaderRefresh() {
+        Message msg = new Message();
+        msg.what = IAView.FINISH_HEADER_REFRESH;
+        mAView.sendMessage(msg);
+        for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
+            iPullToRefreshListener.onFinishHeaderRefresh();
+        }
+    }
+
+    @Override
+    public void finishFooterRefresh() {
+        Message msg = new Message();
+        msg.what = IAView.FINISH_FOOTER_REFRESH;
+        mAView.sendMessage(msg);
+        for (IPullToRefreshListener iPullToRefreshListener : mPullToRefreshListeners) {
+            iPullToRefreshListener.onFinishFooterRefresh();
         }
     }
 
@@ -420,7 +446,7 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         LogUtil.d("duration : " + duration);
 
         Animator scrollBack =
-                mAnimatorBuilder.buildScrollBackAnimator(mPullToRefreshListeners,
+                mAnimatorBuilder.buildScrollBackAnimator(this,
                         mAView,
                         start,
                         duration,
@@ -431,8 +457,6 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
     @Override
     public Animator buildOverFlingAnim(float vY) {
-        changeHeaderOrFooterVisibility();
-
         final String key = ANIM_OVER_FLING;
 
         if (vY < 1f && vY > -1f) {
@@ -452,41 +476,45 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
         Animator overFling =
                 mAnimatorBuilder.buildOverFlingAnimator(
-                        mPullToRefreshListeners,
+                        this,
                         mAView,
                         vY > 0 ? mAViewParams.mHeaderTriggerRefreshHeight : mAViewParams.mFooterTriggerRefreshHeight,
                         finalVy,
                         mAViewParams.mOverFlingDuration,
                         mAViewParams.mOverFlingInterpolator);
 
-
         return overFling;
     }
 
-    private void changeHeaderOrFooterVisibility() {
+    @Override
+    public void changeHeaderOrFooterVisibility(boolean headerShow, boolean footerShow) {
+        //LogUtil.d("headerShow : " + headerShow + " footerShow : " + footerShow);
         if (mHeaderView != null) {
-            mHeaderView.setVisible(mAViewParams.isEnableOverFlingHeaderShow);
+            mHeaderView.setVisible(headerShow);
         }
 
         if (mFooterView != null) {
-            mFooterView.setVisible(mAViewParams.isEnableOverFlingFooterShow);
+            mFooterView.setVisible(footerShow);
         }
     }
 
     @Override
     public Animator buildScrollToTriggerAnim() {
-        if (mAView.getViewTranslationY() > 0) {
-            return buildScrollToAnim(mAView.getViewTranslationY(), mAViewParams.mHeaderTriggerRefreshHeight);
-        } else if (mAView.getViewTranslationY() < 0) {
-            return buildScrollToAnim(mAView.getViewTranslationY(), -mAViewParams.mHeaderTriggerRefreshHeight);
-        } else {
-            return null;
+        Animator animator = null;
+
+        int currentHeight = mAView.getViewTranslationY();
+
+        if (currentHeight > 0) {
+            animator = buildScrollToAnim(mAView.getViewTranslationY(), mAViewParams.mHeaderTriggerRefreshHeight);
+        } else if (currentHeight < 0) {
+            animator = buildScrollToAnim(mAView.getViewTranslationY(), -mAViewParams.mHeaderTriggerRefreshHeight);
         }
+
+        return animator;
     }
 
     private Animator buildScrollToAnim(float start, float to) {
         final String key = ANIM_SCROLL_TO;
-        d(key + " : " + " start : " + start + " to : " + to);
 
         int duration = Math.min(
                 mAViewParams.mScrollToAnimMaxDuration,
@@ -494,7 +522,7 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
                         mAViewParams.mScrollToAnimMinDuration)
         );
 
-        Animator scrollTo = mAnimatorBuilder.buildScrollToAnim(mPullToRefreshListeners,
+        Animator scrollTo = mAnimatorBuilder.buildScrollToAnim(this,
                 mAView,
                 to,
                 duration,

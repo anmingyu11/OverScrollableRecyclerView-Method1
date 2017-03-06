@@ -152,37 +152,41 @@ public final class AViewState {
 
     //For debug
     static final String[] SCROLL_STATES = new String[]{
-            "SCROLL_STATE_IDLE",//0
-            "SCROLL_STATE_DRAGGING_IN_CONTENT",//1
-            "SCROLL_STATE_SETTLING_IN_CONTENT",//2
-            "SCROLL_STATE_OVER_SCROLL_HEADER",//3
-            "SCROLL_STATE_OVER_SCROLL_FOOTER",//4
-            "SCROLL_STATE_OVER_FLING_HEADER",//5
-            "SCROLL_STATE_OVER_FLING_FOOTER"//6
+            "STATE_IDLE",//0
+            "STATE_DRAGGING_IN_CONTENT",//1
+            "STATE_SETTLING_IN_CONTENT",//2
+            "STATE_OVER_SCROLL_HEADER",//3
+            "STATE_OVER_SCROLL_FOOTER",//4
+            "STATE_OVER_FLING_HEADER",//5
+            "STATE_OVER_FLING_FOOTER",//6
+            "STATE_HEADER_REFRESHING",//7
+            "STATE_FOOTER_REFRESHING"//8
     };
 
-    int LastScrollState = SCROLL_STATE_IDLE;
-    int CurrentScrollState = SCROLL_STATE_IDLE;
+    int LastScrollState = STATE_IDLE;
+    int CurrentState = STATE_IDLE;
 
-    static final int SCROLL_STATE_IDLE = 0;
-    static final int SCROLL_STATE_DRAGGING_IN_CONTENT = 1;
-    static final int SCROLL_STATE_SETTLING_IN_CONTENT = 2;
-    static final int SCROLL_STATE_OVER_SCROLL_HEADER = 3;
-    static final int SCROLL_STATE_OVER_SCROLL_FOOTER = 4;
-    static final int SCROLL_STATE_OVER_FLING_HEADER = 5;
-    static final int SCROLL_STATE_OVER_FLING_FOOTER = 6;
+    static final int STATE_IDLE = 0;
+    static final int STATE_DRAGGING_IN_CONTENT = 1;
+    static final int STATE_SETTLING_IN_CONTENT = 2;
+    static final int STATE_OVER_SCROLL_HEADER = 3;
+    static final int STATE_OVER_SCROLL_FOOTER = 4;
+    static final int STATE_OVER_FLING_HEADER = 5;
+    static final int STATE_OVER_FLING_FOOTER = 6;
+    static final int STATE_HEADER_REFRESHING = 7;
+    static final int STATE_FOOTER_REFRESHING = 8;
 
     void setScrollState(int newState) {
-        LastScrollState = CurrentScrollState;
-        CurrentScrollState = newState;
+        LastScrollState = CurrentState;
+        CurrentState = newState;
     }
 
     boolean notifyScrollStateChanged(int newState) {
-        if (CurrentScrollState != newState) {
+        if (CurrentState != newState) {
             setScrollState(newState);
             //LogUtil.printTraceStack("where");
             LogUtil.e("----------------");
-            LogUtil.d("CurrentScrollState : " + SCROLL_STATES[CurrentScrollState]);
+            LogUtil.d("CurrentState : " + SCROLL_STATES[CurrentState]);
             LogUtil.i("LastScrollState : " + SCROLL_STATES[LastScrollState]);
             LogUtil.e("----------------");
             for (OnScrollDetectorListener onScrollDetectorListener : mOnScrollDetectorListeners) {

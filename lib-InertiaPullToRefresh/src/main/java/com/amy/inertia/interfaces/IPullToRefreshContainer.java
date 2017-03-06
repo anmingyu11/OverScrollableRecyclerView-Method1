@@ -11,6 +11,8 @@ public interface IPullToRefreshContainer {
 
     void setFooterView(IFooterView iFooterView);
 
+    void changeHeaderOrFooterVisibility(boolean headerShow, boolean footerShow);
+
     //Trigger and Max.
     void setHeaderTriggerRefreshHeight(int triggerHeight);
 
@@ -61,12 +63,13 @@ public interface IPullToRefreshContainer {
 
     void enableFooterOverScroll(boolean enable);
 
+    void enableOverScrollHeaderShow(boolean enable);
+
+    void enableOverScrollFooterShow(boolean enable);
+
     void setOverScrollPullDamp(float damp);
 
     //Refresh
-    void finishHeaderRefresh();
-
-    void finishFooterRefresh();
 
     void enableHeaderPullToRefresh(boolean enable);
 
@@ -81,13 +84,22 @@ public interface IPullToRefreshContainer {
 
     boolean removeIPullListener(IPullToRefreshListener iPullToRefreshListener);
 
+    //pulling releasing refreshing view changed
     void pullingHeader(float currentHeight);
 
     void pullingFooter(float currentHeight);
 
-    void headerReleasing(float currentHeight, float headerHeight);
+    void headerReleasing(float currentHeight);
 
-    void footerReleasing(float currentHeight, float footerHeight);
+    void footerReleasing(float currentHeight);
+
+    void headerRefresh();
+
+    void footerRefresh();
+
+    void finishHeaderRefresh();
+
+    void finishFooterRefresh();
 
     //Inside functions
     void attachToAView(IAView iaView);
