@@ -20,9 +20,9 @@ import com.amy.inertia.util.LogUtil;
 import com.amy.inertia.util.ScrollUtil;
 import com.amy.inertia.util.Util;
 
+import static com.amy.inertia.view.AViewState.STATE_IDLE;
 import static com.amy.inertia.view.AViewState.STATE_FOOTER_REFRESHING;
 import static com.amy.inertia.view.AViewState.STATE_HEADER_REFRESHING;
-import static com.amy.inertia.view.AViewState.STATE_IDLE;
 import static com.amy.inertia.view.AViewState.STATE_OVER_FLING_FOOTER;
 import static com.amy.inertia.view.AViewState.STATE_OVER_FLING_HEADER;
 import static com.amy.inertia.view.AViewState.STATE_OVER_SCROLL_FOOTER;
@@ -141,7 +141,10 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent e) {
-        final float scrollDamp = mAViewParams.mOverScrollDamp;
+        final float height = getHeight();
+        final float transY = getTranslationY();
+        final float scrollDamp = mAViewParams.mOverScrollDamp * Math.abs(height - Math.abs(transY)) / height;
+
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
                 mAViewState.setTouchLastXY(e);

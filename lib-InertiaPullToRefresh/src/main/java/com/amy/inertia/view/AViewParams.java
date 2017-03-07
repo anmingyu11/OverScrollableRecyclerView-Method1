@@ -12,7 +12,7 @@ public final class AViewParams {
     boolean isEnableOverFlingFooterShow = false;
 
     //OverFlingParams
-    int mOverFlingDuration = 150;
+    int mOverFlingDuration = 100;
     int mOverFlingMaxVY = 300;
     Interpolator mOverFlingInterpolator = new LinearInterpolator();
 
@@ -43,8 +43,8 @@ public final class AViewParams {
     int mScrollToAnimMaxDuration = 600;
 
     //Trigger and Max params
-    int mHeaderPullMaxHeight = 1000;
-    int mFooterPullMaxHeight = 1000;
+    int mHeaderPullMaxHeight = 2240;
+    int mFooterPullMaxHeight = 2240;
     int mHeaderTriggerRefreshHeight = 500;
     int mFooterTriggerRefreshHeight = 500;
 

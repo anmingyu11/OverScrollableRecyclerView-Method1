@@ -12,8 +12,9 @@ public class Util {
         return velocity > 0 ? -g : g;
     }
 
-    public static int getDuration(int start){
-        return (int) (1000.0 * Math.sqrt(-2.0 * start / getDeceleration(start)));
+    public static int getDuration(int start) {
+        double denominator = Math.sqrt(-2.0 * start / getDeceleration(start));
+        return (int) (1000.0 * Math.sqrt(denominator));
     }
 
     public static int getMax(int[] arr) {
