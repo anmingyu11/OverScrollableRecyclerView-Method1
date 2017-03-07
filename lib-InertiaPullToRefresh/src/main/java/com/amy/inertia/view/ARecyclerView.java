@@ -141,20 +141,21 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent e) {
+        final float scrollDamp = mAViewParams.mOverScrollDamp;
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
                 mAViewState.setTouchLastXY(e);
                 break;
             }
             case MotionEvent.ACTION_POINTER_DOWN: {
-                mAViewState.setTouchDXY(e);
+                mAViewState.setTouchDXY(e, scrollDamp);
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
                 if (mAViewState.getLastAction() == MotionEvent.ACTION_POINTER_UP) {
                     mAViewState.setTouchLastXY(e);
                 } else {
-                    mAViewState.setTouchDXY(e);
+                    mAViewState.setTouchDXY(e, scrollDamp);
                 }
                 break;
             }
@@ -384,7 +385,8 @@ public class ARecyclerView extends RecyclerView implements IAView {
                 if (mAViewParams.isEnableFooterPullToRefresh
                         && Math.abs(transY) > mAViewParams.mHeaderTriggerRefreshHeight) {
                     //Todo scroll to
-                    animScrollTo(mAViewParams.mHeaderTriggerRefreshHeight);
+                    //animScrollTo(mAViewParams.mHeaderTriggerRefreshHeight);
+                    animScrollBack(STATE_OVER_FLING_HEADER);
                 } else {
                     animScrollBack(STATE_OVER_FLING_HEADER);
                 }
@@ -394,7 +396,8 @@ public class ARecyclerView extends RecyclerView implements IAView {
                 if (mAViewParams.isEnableFooterPullToRefresh
                         && Math.abs(transY) > mAViewParams.mHeaderTriggerRefreshHeight) {
                     //Todo scroll to
-                    animScrollTo(mAViewParams.mFooterTriggerRefreshHeight);
+                    //animScrollTo(mAViewParams.mFooterTriggerRefreshHeight);
+                    animScrollBack(STATE_OVER_FLING_FOOTER);
                 } else {
                     animScrollBack(STATE_OVER_FLING_FOOTER);
                 }
@@ -481,10 +484,12 @@ public class ARecyclerView extends RecyclerView implements IAView {
         mAnimatorController.startAnimator(ANIM_SCROLL_TO);
     }
 
+    //Todo scroll back anim
     private void animScrollBack(final int notify) {
         mAnimatorController.cancelAllAnim();
 
-        ValueAnimator animator = (ValueAnimator) mPullToRefreshContainer.buildScrollBackAnim(getTranslationY());
+        ValueAnimator animator = (ValueAnimator) mPullToRefreshContainer.buildScrollBackAnim(getTranslationY(),
+                Util.getDuration(getViewTranslationY()));
 
         if (animator == null) {
             return;
@@ -575,7 +580,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
         //LogUtil.d("currentTranslation Y : " + translationY + " lastTranslation Y : " + getTranslationY());
         //LogUtil.d("TranslationY : " + translationY);
         int transY = -100;
-
+        final float overScrollDamp = mAViewParams.mOverScrollDamp;
         if (translationY > 0f && getTranslationY() < 0f) {
             transY = 0;
         } else if (translationY < 0f && getTranslationY() > 0f) {

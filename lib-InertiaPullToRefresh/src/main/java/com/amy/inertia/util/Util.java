@@ -7,6 +7,14 @@ import android.view.WindowManager;
 
 public class Util {
 
+    public static float getDeceleration(float velocity) {
+        float g = 2000.0f;
+        return velocity > 0 ? -g : g;
+    }
+
+    public static int getDuration(int start){
+        return (int) (1000.0 * Math.sqrt(-2.0 * start / getDeceleration(start)));
+    }
 
     public static int getMax(int[] arr) {
         int max = arr[0];

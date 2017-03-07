@@ -106,7 +106,7 @@ public interface IPullToRefreshContainer {
 
     List<IPullToRefreshListener> getPullListenerGroup();
 
-    Animator buildScrollBackAnim(float start);
+    Animator buildScrollBackAnim(float start,int duration);
 
     Animator buildOverFlingAnim(float vY);
 

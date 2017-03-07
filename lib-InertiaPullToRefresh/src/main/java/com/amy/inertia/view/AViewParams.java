@@ -12,7 +12,7 @@ public final class AViewParams {
     boolean isEnableOverFlingFooterShow = false;
 
     //OverFlingParams
-    int mOverFlingDuration = 100;
+    int mOverFlingDuration = 150;
     int mOverFlingMaxVY = 300;
     Interpolator mOverFlingInterpolator = new LinearInterpolator();
 
@@ -24,7 +24,7 @@ public final class AViewParams {
     boolean isEnableOverScrollFooterShow = true;
 
     //OverScrollParams
-    float mOverScrollDamp = 0.3f;
+    float mOverScrollDamp = 0.5f;
 
     //Refresh
     boolean isEnableHeaderPullToRefresh = true;

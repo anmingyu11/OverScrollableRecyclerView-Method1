@@ -96,11 +96,11 @@ public final class AViewState {
         touchLastY = (int) (e.getY(pointerId) + 0.5f);
     }
 
-    void setTouchDXY(MotionEvent e) {
+    void setTouchDXY(MotionEvent e, float damp) {
         float X = e.getRawX();
         float Y = e.getRawY();
-        touchDX = (int) (X - touchLastX);
-        touchDY = (int) (Y - touchLastY);
+        touchDX = (int) ((X - touchLastX) * damp);
+        touchDY = (int) ((Y - touchLastY) * damp);
         setTouchLastXY(X, Y);
         //LogUtil.d("DY : " + touchDY);
     }
@@ -108,22 +108,6 @@ public final class AViewState {
     void setTouchLastXY(float X, float Y) {
         touchLastX = (int) (X + 0.5f);
         touchLastY = (int) (Y + 0.5f);
-    }
-
-    void setTouchDXY(float X, float Y) {
-        touchDX = (int) (X - touchLastX);
-        touchDY = (int) (Y - touchLastY);
-        setTouchLastXY(X, Y);
-        //LogUtil.d("DY : " + touchDY);
-    }
-
-    void setTouchDXY(MotionEvent e, int pointerId) {
-        float X = e.getX(pointerId);
-        float Y = e.getY(pointerId);
-        touchDX = (int) (X - touchLastX);
-        touchDY = (int) (Y - touchLastY);
-        setTouchLastXY(e, pointerId);
-        //LogUtil.d("DY : " + touchDY);
     }
 
     // DY array use this to store scroll velocity.

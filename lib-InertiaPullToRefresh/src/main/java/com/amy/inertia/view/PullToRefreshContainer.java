@@ -14,7 +14,6 @@ import com.amy.inertia.interfaces.IFooterView;
 import com.amy.inertia.interfaces.IHeaderView;
 import com.amy.inertia.interfaces.IPullToRefreshContainer;
 import com.amy.inertia.interfaces.IPullToRefreshListener;
-import com.amy.inertia.util.LogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -426,10 +425,10 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         return null;
     }
 
+
     @Override
-    public Animator buildScrollBackAnim(float start) {
+    public Animator buildScrollBackAnim(float start, int duration) {
         final String key = ANIM_SCROLL_BACK;
-        d(key + " : " + " start : " + start);
 
         if (start < 1f && start > -1f) {
             e(key + " cannot be built.");
@@ -437,13 +436,13 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
             return null;
         }
 
-        int duration = Math.min(
+        /*int duration = Math.min(
                 mAViewParams.mScrollBackAnimMaxDuration,
                 Math.max(Math.abs((int) (start * mAViewParams.mScrollBackDamp)),
                         mAViewParams.mScrollBackAnimMinDuration)
-        );
+        );*/
 
-        LogUtil.d("duration : " + duration);
+        d("key" + " : " + " start : " + start + " duration : " + duration);
 
         Animator scrollBack =
                 mAnimatorBuilder.buildScrollBackAnimator(this,

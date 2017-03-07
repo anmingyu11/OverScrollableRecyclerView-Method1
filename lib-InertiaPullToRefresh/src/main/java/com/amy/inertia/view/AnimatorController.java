@@ -6,7 +6,7 @@ import com.amy.inertia.interfaces.IAView;
 import com.amy.inertia.interfaces.IAnimatorController;
 import com.amy.inertia.util.LogUtil;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.amy.inertia.util.Util.checkNotNull;
 
@@ -14,7 +14,7 @@ final class AnimatorController implements IAnimatorController {
 
     IAView mAView;
 
-    final HashMap<String, Animator> mAnimators = new HashMap<String, Animator>();
+    final ConcurrentHashMap<String, Animator> mAnimators = new ConcurrentHashMap<String, Animator>();
 
     AnimatorController(IAView iaView) {
         attachAView(iaView);
