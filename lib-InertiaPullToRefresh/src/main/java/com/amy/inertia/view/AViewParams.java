@@ -1,10 +1,20 @@
 package com.amy.inertia.view;
 
-import android.view.animation.DecelerateInterpolator;
+import android.content.Context;
+import android.view.ViewConfiguration;
 import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
+
+import com.amy.inertia.ViscousInterpolator;
+import com.amy.inertia.util.ScrollerUtil;
 
 public final class AViewParams {
+
+    private Context mContext;
+
+    int maxOverFlingDistance;
+    int maxOverScrollDistance;
+    int maxVelocity;
+    int minVelocity;
 
     //OverFling switch
     boolean isEnableOverFling = true;
@@ -14,7 +24,8 @@ public final class AViewParams {
     //OverFlingParams
     int mOverFlingDuration = 100;
     int mOverFlingMaxVY = 300;
-    Interpolator mOverFlingInterpolator = new LinearInterpolator();
+    //Interpolator mOverFlingInterpolator = ScrollerUtil.sQuinticInterpolator;
+    Interpolator mOverFlingInterpolator = ScrollerUtil.sQuinticInterpolator;
 
     //OverScroll
     boolean isEnableOverScroll = true;
@@ -36,7 +47,7 @@ public final class AViewParams {
     int mScrollBackAnimMinDuration = 600;
     int mScrollBackAnimMaxDuration = 1200;
     float mScrollBackDamp = 7f / 10f;
-    Interpolator mScrollBackAnimInterpolator = new DecelerateInterpolator();
+    Interpolator mScrollBackAnimInterpolator = new ViscousInterpolator();
 
     //ScrollToParams
     int mScrollToAnimMinDuration = 300;
@@ -48,4 +59,10 @@ public final class AViewParams {
     int mHeaderTriggerRefreshHeight = 500;
     int mFooterTriggerRefreshHeight = 500;
 
+    public AViewParams(Context context) {
+        mContext = context;
+        final ViewConfiguration configuration = ViewConfiguration.get(mContext);
+        maxVelocity = configuration.getScaledMaximumFlingVelocity();
+        minVelocity = configuration.getScaledMinimumFlingVelocity();
+    }
 }

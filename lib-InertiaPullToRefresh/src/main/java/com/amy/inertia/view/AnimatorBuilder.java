@@ -66,25 +66,23 @@ final class AnimatorBuilder {
     public Animator buildOverFlingAnimator(final IPullToRefreshContainer iPullToRefreshContainer,
                                            final IAView iaView,
                                            final float triggerHeight,
-                                           final float vY,
+                                           final int distance,
                                            int duration,
                                            Interpolator interpolator) {
-        LogUtil.d("over fling animator start value : " + vY + " duration : " + duration);
+        LogUtil.d("over fling animator start value : " + distance + " duration : " + duration);
 
         ValueAnimator overScrollAnimator = null;
 
-        overScrollAnimator = ValueAnimator.ofFloat(-vY, 0);
+        overScrollAnimator = ValueAnimator.ofFloat(1, distance);
         overScrollAnimator.setDuration(Math.abs(duration));
         overScrollAnimator.setInterpolator(interpolator);
         overScrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                float value = (float) animation.getAnimatedValue();
-
-                float currentHeight = value + iaView.getViewTranslationY();
+                float currentHeight = (float) animation.getAnimatedValue();
 
                 iaView.setViewTranslationY(currentHeight);
-
+                LogUtil.d("currentHeight : " + currentHeight);
                 //float fraction = currentHeight / triggerHeight;
                 //LogUtil.d("fraction : " + value / start);
                 if (currentHeight > 0f) {

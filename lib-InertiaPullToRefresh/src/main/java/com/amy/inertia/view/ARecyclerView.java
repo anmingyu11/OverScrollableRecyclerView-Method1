@@ -20,9 +20,9 @@ import com.amy.inertia.util.LogUtil;
 import com.amy.inertia.util.ScrollUtil;
 import com.amy.inertia.util.Util;
 
-import static com.amy.inertia.view.AViewState.STATE_IDLE;
 import static com.amy.inertia.view.AViewState.STATE_FOOTER_REFRESHING;
 import static com.amy.inertia.view.AViewState.STATE_HEADER_REFRESHING;
+import static com.amy.inertia.view.AViewState.STATE_IDLE;
 import static com.amy.inertia.view.AViewState.STATE_OVER_FLING_FOOTER;
 import static com.amy.inertia.view.AViewState.STATE_OVER_FLING_HEADER;
 import static com.amy.inertia.view.AViewState.STATE_OVER_SCROLL_FOOTER;
@@ -40,6 +40,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
 
     private AViewParams mAViewParams = null;
 
+    private AScrollerController mAScrollerController;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -111,12 +112,16 @@ public class ARecyclerView extends RecyclerView implements IAView {
             } else if (isScrollToBottom) {
                 //d("IsScrollToBottom : " + Util.spellArray(mAViewState.VYArray));
                 if (mAViewParams.isEnableOverFling) {
-                    animOverFling(mAViewState.getVy(), STATE_OVER_FLING_FOOTER);
+                    int[] p = mAScrollerController.notifyEdgeReached();
+                    animOverFling(-p[0], p[1], STATE_OVER_FLING_FOOTER);
+                    LogUtil.d("onEdgeReached bottom " + " distance : " + p[0] + " duration : " + p[1]);
                 }
             } else if (isScrollToTop) {
                 //d("IsScrollToTop : " + Util.spellArray(mAViewState.VYArray));
                 if (mAViewParams.isEnableOverFling) {
-                    animOverFling(mAViewState.getVy(), STATE_OVER_FLING_HEADER);
+                    int[] p = mAScrollerController.notifyEdgeReached();
+                    animOverFling(p[0], p[1], STATE_OVER_FLING_HEADER);
+                    LogUtil.d("onEdgeReached top " + " distance : " + p[0] + " duration : " + p[1]);
                 }
             }
         }
@@ -133,9 +138,10 @@ public class ARecyclerView extends RecyclerView implements IAView {
     }
 
     @Override
-    public void attachToParent(IPullToRefreshContainer iPullToRefresh, AViewParams aViewParams) {
+    public void attachToParent(IPullToRefreshContainer iPullToRefresh, AViewParams aViewParams, AScrollerController aScrollerController) {
         mPullToRefreshContainer = iPullToRefresh;
         mAViewParams = aViewParams;
+        mAScrollerController = aScrollerController;
         mPullToRefreshContainer.attachToAView(this);
     }
 
@@ -233,6 +239,40 @@ public class ARecyclerView extends RecyclerView implements IAView {
         setViewTranslationY(0f);
         mAViewState.notifyScrollStateChanged(SCROLL_STATE_IDLE);
         return super.onTouchEvent(e);
+    }
+
+    @Override
+    public boolean fling(int velocityX, int velocityY) {
+        boolean r = super.fling(velocityX, velocityY);
+        if (Math.abs(velocityY) > mAViewParams.minVelocity) {
+            mAScrollerController.fling(0, 0, 0, velocityY, 0, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        }
+        return r;
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+
+        //Calculate overFling distance here.
+        final int overScrollDistance = b - t;
+        final int overFlingDistance = overScrollDistance / 2;
+
+        mAViewParams.maxOverScrollDistance = overScrollDistance;
+        mAViewParams.maxOverFlingDistance = overFlingDistance;
+
+        LogUtil.d("overScrollDistance : " + overScrollDistance
+                + ("\noverFlingDistance : " + overFlingDistance));
+
+    }
+
+    @Override
+    public void computeScroll() {
+        super.computeScroll();
+        mAScrollerController.computeOffset();
+        int currY = mAScrollerController.getCurrY();
+        int currVY = mAScrollerController.getCurrVelocity();
+        LogUtil.d(" currY : " + currY + " currVY : " + mAScrollerController.getCurrVelocity());
     }
 
     private boolean onTouchDown(MotionEvent e, int pointerId) {
@@ -412,10 +452,10 @@ public class ARecyclerView extends RecyclerView implements IAView {
         }
     }
 
-    private void animOverFling(float vY, final int notify) {
+    private void animOverFling(float distance, int duration, final int notify) {
         mAnimatorController.cancelAllAnim();
 
-        ValueAnimator animator = (ValueAnimator) mPullToRefreshContainer.buildOverFlingAnim(vY);
+        ValueAnimator animator = (ValueAnimator) mPullToRefreshContainer.buildOverFlingAnim((int) distance, duration);
 
         if (animator == null) {
             return;
@@ -491,8 +531,10 @@ public class ARecyclerView extends RecyclerView implements IAView {
     private void animScrollBack(final int notify) {
         mAnimatorController.cancelAllAnim();
 
-        ValueAnimator animator = (ValueAnimator) mPullToRefreshContainer.buildScrollBackAnim(getTranslationY(),
-                Util.getDuration(getViewTranslationY()));
+        LogUtil.d("scroll back : " + " distance : " + getViewTranslationY() + " duration : " + Util.getDeceleration(getViewTranslationY()));
+        ValueAnimator animator = (ValueAnimator) mPullToRefreshContainer.buildScrollBackAnim(
+                getTranslationY(),
+                mAScrollerController.getSpringBackDuration());
 
         if (animator == null) {
             return;
@@ -581,7 +623,7 @@ public class ARecyclerView extends RecyclerView implements IAView {
     @Override
     public int setViewTranslationY(float translationY) {
         //LogUtil.d("currentTranslation Y : " + translationY + " lastTranslation Y : " + getTranslationY());
-        //LogUtil.d("TranslationY : " + translationY);
+        LogUtil.d("TranslationY : " + translationY);
         int transY = -100;
         final float overScrollDamp = mAViewParams.mOverScrollDamp;
         if (translationY > 0f && getTranslationY() < 0f) {

@@ -2,6 +2,7 @@ package com.amy.inertia.interfaces;
 
 import android.os.Message;
 
+import com.amy.inertia.view.AScrollerController;
 import com.amy.inertia.view.AViewParams;
 import com.amy.inertia.view.AViewState;
 
@@ -20,7 +21,7 @@ public interface IAView {
      *
      * @param iPullToRefresh
      */
-    void attachToParent(IPullToRefreshContainer iPullToRefresh, AViewParams aViewParams);
+    void attachToParent(IPullToRefreshContainer iPullToRefresh, AViewParams aViewParams, AScrollerController aScrollerController);
 
     /**
      * Add a Scroll Detector listener.

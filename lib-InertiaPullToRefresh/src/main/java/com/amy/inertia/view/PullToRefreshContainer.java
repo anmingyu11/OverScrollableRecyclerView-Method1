@@ -41,12 +41,14 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     //ChildView
     private IAView mAView;
 
-    private final AViewParams mAViewParams = new AViewParams();
+    private AViewParams mAViewParams;
+
+    private AnimatorBuilder mAnimatorBuilder;
+
+    private AScrollerController mAScrollerController;
 
     //PullListeners
     private final List<IPullToRefreshListener> mPullToRefreshListeners = new ArrayList<>();
-
-    private final AnimatorBuilder mAnimatorBuilder = AnimatorBuilder.getInstance(mAViewParams);
 
     public PullToRefreshContainer(Context context) {
         this(context, null, 0);
@@ -65,6 +67,9 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         }
 
         mContext = context;
+        mAViewParams = new AViewParams(mContext);
+        mAnimatorBuilder = AnimatorBuilder.getInstance(mAViewParams);
+        mAScrollerController = new AScrollerController(mContext, mAViewParams);
     }
 
     @Override
@@ -104,7 +109,8 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
         }
 
         if (mAView != null) {
-            mAView.attachToParent(this, mAViewParams);
+            mAView.attachToParent(this, mAViewParams, mAScrollerController);
+            mAScrollerController.attachAView(mAView);
         } else {
             throw new NullPointerException("ChildView cannot be null.");
         }
@@ -455,15 +461,16 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
     }
 
     @Override
-    public Animator buildOverFlingAnim(float vY) {
+    public Animator buildOverFlingAnim(int distance, int duration) {
         final String key = ANIM_OVER_FLING;
 
-        if (vY < 1f && vY > -1f) {
+        if (distance < 1f && distance > -1f) {
             e(key + " cannot be built.");
             mAView.setViewTranslationY(0f);
             return null;
         }
 
+        /*
         if (vY > 0 && mAViewParams.mOverFlingMaxVY < 0) {
             mAViewParams.mOverFlingMaxVY = -mAViewParams.mOverFlingMaxVY;
         } else if (vY < 0 && mAViewParams.mOverFlingMaxVY > 0) {
@@ -472,14 +479,15 @@ public class PullToRefreshContainer extends FrameLayout implements IPullToRefres
 
         final float finalVy = Math.abs(vY) < Math.abs(mAViewParams.mOverFlingMaxVY) ? vY : mAViewParams.mOverFlingMaxVY;
         d(key + " finalVY : " + finalVy);
+        */
 
         Animator overFling =
                 mAnimatorBuilder.buildOverFlingAnimator(
                         this,
                         mAView,
-                        vY > 0 ? mAViewParams.mHeaderTriggerRefreshHeight : mAViewParams.mFooterTriggerRefreshHeight,
-                        finalVy,
-                        mAViewParams.mOverFlingDuration,
+                        distance > 0 ? mAViewParams.mHeaderTriggerRefreshHeight : mAViewParams.mFooterTriggerRefreshHeight,
+                        distance,
+                        duration,
                         mAViewParams.mOverFlingInterpolator);
 
         return overFling;

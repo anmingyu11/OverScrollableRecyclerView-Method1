@@ -16,7 +16,6 @@ import com.amy.inertia.interfaces.PullListenerAdapter;
 import com.amy.inertia.view.ARecyclerView;
 import com.amy.inertia.view.PullToRefreshContainer;
 import com.amy.inertiapulltorefreshview.R;
-import com.amy.inertiapulltorefreshview.ViscousInterpolator;
 import com.amy.inertiapulltorefreshview.header.TopLoadingRefreshView;
 
 import java.util.ArrayList;
@@ -89,7 +88,6 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 }, 2000);
             }
         });
-        mPullToRefreshContainer.setScrollBackInterpolator(new ViscousInterpolator());
 
         mRecyclerView = (ARecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {

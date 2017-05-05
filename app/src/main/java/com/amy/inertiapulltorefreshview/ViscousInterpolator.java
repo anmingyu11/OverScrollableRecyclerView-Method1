@@ -29,6 +29,7 @@ public class ViscousInterpolator implements Interpolator {
             x = 1.0f - (float) Math.exp(1.0f - x);
             x = start + x * (1.0f - start);
         }
+        x *= VISCOUS_FLUID_SCALE;
         return x;
     }
 
